@@ -1,272 +1,492 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hotel Concord - Check-in Live protel</title>
-    <script src="https://jsdelivr.net"></script>
-    <script src="https://jsdelivr.net"></script>
-    <style>
-        :root { --primary: #1a365d; --accent: #c59b27; --bg: #f1f5f9; --text: #1e293b; }
-        * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
-        body { margin: 0; padding: 10px; background: var(--bg); color: var(--text); }
-        header {
-            background: var(--primary); color: #fff; padding: 12px; border-radius: 10px;
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
-        }
-        header h1 { font-size: 15px; margin: 0; }
-        header small { color: var(--accent); font-size: 11px; }
-        select.term { background: var(--accent); color: #fff; border: none; padding: 7px; border-radius: 6px; font-weight: bold; }
-        .card { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        h2 { font-size: 13px; margin: 0 0 8px; color: var(--primary); border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
-        .btn {
-            width: 100%; padding: 13px; border: none; border-radius: 8px; font-size: 15px;
-            font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .btn-gold { background: var(--accent); color: #fff; }
-        .btn-blue { background: var(--primary); color: #fff; margin-top: 10px; }
-        .btn-green { background: #15803d; color: #fff; }
-        .btn-stop { background: #dc2626; color: #fff; margin-top: 8px; padding: 10px; font-size: 13px; }
-        .btn-gray { background: #e2e8f0; color: var(--text); font-size: 12px; padding: 8px; margin-top: 6px; }
-        
-        /* Mirino Fotocamera Live Compatto */
-        #camContainer { display: none; position: relative; margin-top: 8px; border-radius: 8px; overflow: hidden; background: #000; }
-        video { width: 100%; height: 190px; object-fit: cover; display: block; }
-        .guide-box {
-            position: absolute; top: 50%; left: 5%; width: 90%; height: 68px;
-            transform: translateY(-50%); border: 2px solid #22c55e; border-radius: 6px;
-            box-shadow: 0 0 0 999px rgba(0,0,0,0.55); pointer-events: none;
-        }
-        .guide-label {
-            position: absolute; top: -20px; left: 0; width: 100%; text-align: center;
-            color: #22c55e; font-size: 11px; font-weight: bold; text-shadow: 1px 1px 2px #000;
-        }
-        #status { display: none; padding: 8px; border-radius: 6px; font-size: 12px; margin-top: 8px; font-weight: 600; text-align: center; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-        label { font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 2px; }
-        input, select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
-        .item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
-        .del { background: #dc2626; color: #fff; border: none; border-radius: 5px; padding: 4px 8px; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Hotel Concord Torino — Check-in protel PMS</title>
+  <script src="https://jsdelivr.net"></script>
+  <script src="https://jsdelivr.net"></script>
+  <style>
+    :root {
+      --navy: #0f2537;
+      --navy-light: #1e3a5f;
+      --gold: #c59b27;
+      --gold-light: #fef9c3;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --green: #15803d;
+      --red: #dc2626;
+    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; padding: 12px; background: var(--bg); color: var(--text); padding-bottom: 40px; }
+
+    /* HEADER */
+    .topbar {
+      background: linear-gradient(135deg, var(--navy), var(--navy-light));
+      color: #fff; padding: 14px 16px; border-radius: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 4px 12px rgba(15,37,55,0.18); margin-bottom: 14px;
+    }
+    .topbar h1 { margin: 0; font-size: 16px; letter-spacing: 0.4px; }
+    .topbar p { margin: 2px 0 0 0; font-size: 11px; color: #e2e8f0; }
+    .term-badge {
+      background: var(--gold); color: #000; font-weight: 800; border: none;
+      padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer;
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--card); border-radius: 12px; padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 14px; border: 1px solid #e2e8f0;
+    }
+    .card-title {
+      font-size: 14px; font-weight: 700; color: var(--navy); text-transform: uppercase;
+      letter-spacing: 0.5px; margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px;
+    }
+
+    /* ACTION BUTTONS */
+    .action-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 14px; border-radius: 10px; border: none;
+      font-size: 15px; font-weight: 700; cursor: pointer; transition: transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-camera { background: var(--navy); color: #fff; box-shadow: 0 3px 8px rgba(15,37,55,0.2); }
+    .btn-samsung { background: var(--gold); color: #000; box-shadow: 0 3px 8px rgba(197,155,39,0.25); }
+    .btn-parse { background: #e2e8f0; color: var(--navy); padding: 10px; font-size: 13px; margin-top: 8px; }
+    .btn-save { background: var(--green); color: #fff; margin-top: 14px; font-size: 16px; }
+    .btn-excel { background: #0f766e; color: #fff; font-size: 16px; }
+
+    input[type="file"] { display: none; }
+
+    /* STATUS & PREVIEW */
+    #statusBox {
+      display: none; padding: 10px 12px; border-radius: 8px; font-size: 13px;
+      font-weight: 600; margin-top: 10px; line-height: 1.4;
+    }
+    #previewArea { display: none; margin-top: 12px; text-align: center; background: #f8fafc; padding: 8px; border-radius: 8px; border: 1px dashed var(--border); }
+    #previewArea canvas { max-width: 100%; max-height: 150px; border-radius: 6px; }
+    .contrast-bar { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; }
+    .contrast-bar input { flex: 1; }
+
+    textarea {
+      width: 100%; height: 74px; margin-top: 8px; padding: 10px; border-radius: 8px;
+      border: 1px solid var(--border); font-family: monospace; font-size: 12px;
+      text-transform: uppercase; background: #f8fafc;
+    }
+
+    /* FORM */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field { display: flex; flex-direction: column; }
+    .field.full { grid-column: span 2; }
+    label { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
+    input[type="text"], input[type="date"], select.input-std {
+      width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 14px; background: #fff; color: var(--text);
+    }
+    input:focus, select:focus { outline: 2px solid var(--gold); border-color: transparent; }
+
+    /* TABLE */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+    th { text-align: left; font-size: 11px; color: var(--muted); border-bottom: 2px solid var(--border); padding: 6px 4px; }
+    td { padding: 10px 4px; border-bottom: 1px solid #e2e8f0; }
+    .btn-del { background: #fee2e2; color: var(--red); border: none; border-radius: 6px; padding: 6px 10px; font-weight: bold; }
+    .btn-clear { background: none; border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 600; }
+
+    .tip { font-size: 12px; color: var(--muted); background: #f8fafc; padding: 8px 10px; border-radius: 8px; border-left: 3px solid var(--gold); margin-bottom: 10px; }
+  </style>
 </head>
 <body>
 
-<header>
+  <div class="topbar">
     <div>
-        <h1>HOTEL CONCORD TORINO</h1>
-        <small>Check-in Live &rarr; protel Cloud PMS</small>
+      <h1>HOTEL CONCORD TORINO</h1>
+      <p>Check-in Rapido &rarr; protel Cloud PMS</p>
     </div>
-    <select id="termSel" class="term" onchange="changeTerm()">
-        <option value="T1">Terminale 1</option>
-        <option value="T2">Terminale 2</option>
+    <select id="terminalSelect" class="term-badge" onchange="switchTerminal()">
+      <option value="T1">TERMINALE 1</option>
+      <option value="T2">TERMINALE 2</option>
     </select>
-</header>
+  </div>
 
-<div class="card">
-    <h2>1. Scansione Rapida CIE / Passaporto</h2>
-    <button type="button" id="btnStartCam" class="btn btn-gold" onclick="startScanner()">📷 APRI MIRINO DOCUMENTO</button>
-    
-    <div id="camContainer">
-        <video id="video" playsinline autoplay muted></video>
-        <div class="guide-box"><div class="guide-label">ALLINEA QUI LE RIGHE CON &lt;&lt;&lt;</div></div>
-        <button type="button" class="btn btn-stop" onclick="stopScanner()">✕ Chiudi Mirino</button>
+  <!-- STEP 1: ACQUISIZIONE -->
+  <div class="card">
+    <div class="card-title">1. Acquisisci Documento (CIE o Passaporto)</div>
+    <div class="tip">
+      <strong>Consiglio rapido Samsung:</strong> Usa la fotocamera nativa per inquadrare le righe con <b>&lt;&lt;&lt;</b> (retro CIE o fondo Passaporto), oppure incolla il testo copiato con l'icona <b>"T"</b> della fotocamera Samsung.
     </div>
-    <div id="status"></div>
-</div>
 
-<div class="card">
-    <h2>2. Dati Ospite (Verifica)</h2>
-    <div class="grid">
-        <div><label>Camera *</label><input type="text" id="room" placeholder="Es. 204"></div>
-        <div><label>Documento</label>
-            <select id="docType"><option value="ID">CIE (Carta Id.)</option><option value="P">Passaporto</option></select>
-        </div>
-        <div><label>Cognome *</label><input type="text" id="lastName"></div>
-        <div><label>Nome *</label><input type="text" id="firstName"></div>
-        <div><label>Data Nascita *</label><input type="text" id="dob" placeholder="GG/MM/AAAA"></div>
-        <div><label>Sesso</label><select id="sex"><option value="M">M</option><option value="F">F</option></select></div>
-        <div><label>Nazionalità *</label><input type="text" id="nat" placeholder="ITA"></div>
-        <div><label>N. Documento *</label><input type="text" id="docNum"></div>
-        <div><label>Scadenza Doc.</label><input type="text" id="exp" placeholder="GG/MM/AAAA"></div>
-        <div><label>Paese Rilascio</label><input type="text" id="iss" placeholder="ITA"></div>
-        <div><label>Arrivo</label><input type="date" id="arr"></div>
-        <div><label>Partenza</label><input type="date" id="dep"></div>
+    <div class="action-grid">
+      <!-- Apre direttamente la Fotocamera Nativa Android -->
+      <label for="nativeCam" class="btn btn-camera">
+        📷 SCATTA FOTO MRZ (FOTOCAMERA)
+      </label>
+      <input type="file" id="nativeCam" accept="image/*" capture="environment">
+
+      <button type="button" class="btn btn-samsung" onclick="pasteSamsungText()">
+        📋 INCOLLA TESTO COPIATO DA SAMSUNG
+      </button>
     </div>
-    <button type="button" class="btn btn-blue" onclick="addGuest()">➕ AGGIUNGI ALLA ROOMING LIST</button>
-</div>
 
-<div class="card">
-    <h2>3. Lista Acquisiti (<span id="count">0</span>)</h2>
-    <div id="list"></div>
-    <button type="button" class="btn btn-green" style="margin-top:10px;" onclick="exportExcel()">📥 SCARICA EXCEL PROTEL (.xlsx)</button>
-    <button type="button" class="btn btn-gray" onclick="clearList()">🗑️ Svuota Lista</button>
-</div>
+    <div id="statusBox"></div>
 
-<canvas id="cropCanvas" style="display:none;"></canvas>
+    <div id="previewArea">
+      <canvas id="ocrCanvas"></canvas>
+      <div class="contrast-bar">
+        <span>Contrasto:</span>
+        <input type="range" id="thresh" min="75" max="205" value="130" onchange="redrawCanvas()">
+        <button type="button" onclick="executeOCR()" style="background:var(--navy);color:#fff;border:none;padding:6px 10px;border-radius:6px;font-weight:bold;">Rileggi</button>
+      </div>
+    </div>
+
+    <textarea id="mrzInput" placeholder="Qui compariranno le righe MRZ (es. C<ITA...)"></textarea>
+    <button type="button" class="btn btn-parse" onclick="decodeMRZ()">⚡ Estrai Dati nei Campi Sottostanti</button>
+  </div>
+
+  <!-- STEP 2: DATI OSPITE -->
+  <div class="card">
+    <div class="card-title">2. Verifica Dati Ospite</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Cognome *</label>
+        <input type="text" id="lastName" placeholder="ROSSI">
+      </div>
+      <div class="field">
+        <label>Nome *</label>
+        <input type="text" id="firstName" placeholder="MARIO">
+      </div>
+      <div class="field">
+        <label>Tipo Doc.</label>
+        <select id="docType" class="input-std">
+          <option value="ID">Carta Identità (CIE)</option>
+          <option value="P">Passaporto</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Numero Documento *</label>
+        <input type="text" id="docNumber" placeholder="CA00000AA">
+      </div>
+      <div class="field">
+        <label>Data di Nascita</label>
+        <input type="date" id="birthDate">
+      </div>
+      <div class="field">
+        <label>Sesso</label>
+        <select id="gender" class="input-std">
+          <option value="M">M</option>
+          <option value="F">F</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nazionalità (ISO 3)</label>
+        <input type="text" id="nationality" maxlength="3" placeholder="ITA">
+      </div>
+      <div class="field">
+        <label>Paese Rilascio</label>
+        <input type="text" id="issuingCountry" maxlength="3" placeholder="ITA">
+      </div>
+      <div class="field">
+        <label>Scadenza Doc.</label>
+        <input type="date" id="expiryDate">
+      </div>
+      <div class="field">
+        <label>Numero Camera</label>
+        <input type="text" id="roomNumber" placeholder="Es. 305">
+      </div>
+      <div class="field">
+        <label>Data Arrivo</label>
+        <input type="date" id="arrivalDate">
+      </div>
+      <div class="field">
+        <label>Data Partenza</label>
+        <input type="date" id="departureDate">
+      </div>
+    </div>
+
+    <button type="button" class="btn btn-save" onclick="saveGuestToList()">
+      ✅ AGGIUNGI OSPITE (<span id="btnTermText">T1</span>)
+    </button>
+  </div>
+
+  <!-- STEP 3: LISTA & EXPORT -->
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <div class="card-title" style="margin:0;">3. Lista Pronta (<span id="countBadge">0</span>)</div>
+      <button type="button" class="btn-clear" onclick="clearAllGuests()">Svuota</button>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Ospite</th>
+            <th>Documento</th>
+            <th>Naz.</th>
+            <th>Cam.</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="guestListBody"></tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:14px;">
+      <button type="button" class="btn btn-excel" onclick="downloadProtelExcel()">
+        📥 SCARICA EXCEL PROTEL (.XLSX)
+      </button>
+    </div>
+  </div>
 
 <script>
-    let term = localStorage.getItem('hc_term') || 'T1';
-    document.getElementById('termSel').value = term;
-    let guests = JSON.parse(localStorage.getItem('hc_guests_' + term) || '[]');
-    let stream = null, scanTimer = null, isScanning = false, worker = null;
-
-    window.onload = async () => {
-        const d1 = new Date(), d2 = new Date();
-        d2.setDate(d1.getDate() + 1);
-        document.getElementById('arr').value = d1.toISOString().split('T');
-        document.getElementById('dep').value = d2.toISOString().split('T');
-        render();
-        // Pre-carica il motore OCR leggero in background
-        worker = await Tesseract.createWorker('eng');
-        await worker.setParameters({ tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<' });
-    };
-
-    function changeTerm() {
-        term = document.getElementById('termSel').value;
-        localStorage.setItem('hc_term', term);
-        guests = JSON.parse(localStorage.getItem('hc_guests_' + term) || '[]');
-        render();
-    }
-
-    function notify(txt, bg = '#dcfce7', col = '#166534') {
-        const m = document.getElementById('status');
-        m.style.display = 'block'; m.style.background = bg; m.style.color = col; m.innerText = txt;
-    }
-
-    async function startScanner() {
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-            });
-            const video = document.getElementById('video');
-            video.srcObject = stream;
-            document.getElementById('camContainer').style.display = 'block';
-            document.getElementById('btnStartCam').style.display = 'none';
-            notify('🔍 Inquadra le righe <<< dentro il rettangolo verde...', '#e0f2fe', '#0369a1');
-            
-            isScanning = true;
-            scanTimer = setInterval(captureAndRead, 1100);
-        } catch (err) {
-            notify('⚠️ Fotocamera bloccata da Chrome: attiva il flag Chrome come da guida!', '#fee2e2', '#991b1b');
-        }
-    }
-
-    function stopScanner() {
-        isScanning = false;
-        clearInterval(scanTimer);
-        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-        document.getElementById('camContainer').style.display = 'none';
-        document.getElementById('btnStartCam').style.display = 'flex';
-    }
-
-    async function captureAndRead() {
-        if (!isScanning || !worker) return;
-        const video = document.getElementById('video');
-        if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
-
-        // Ritaglia SOLO la striscia centrale (pochissimi KB, zero carico dati!)
-        const canvas = document.getElementById('cropCanvas');
-        const cw = 900, ch = 220;
-        canvas.width = cw; canvas.height = ch;
-        const ctx = canvas.getContext('2d');
-        
-        const sy = video.videoHeight * 0.32;
-        const sh = video.videoHeight * 0.36;
-        ctx.drawImage(video, 0, sy, video.videoWidth, sh, 0, 0, cw, ch);
-
-        // Alto contrasto istantaneo
-        const imgData = ctx.getImageData(0, 0, cw, ch);
-        const d = imgData.data;
-        for (let i = 0; i < d.length; i += 4) {
-            let g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
-            g = g < 125 ? 0 : 255; // Binarizzazione netta bianco/nero
-            d[i] = d[i+1] = d[i+2] = g;
-        }
-        ctx.putImageData(imgData, 0, 0);
-
-        const { data: { text } } = await worker.recognize(canvas);
-        if (parseMRZ(text)) {
-            stopScanner();
-            notify('✅ Documento acquisito! Verifica i dati qui sotto.');
-        }
-    }
-
-    function parseMRZ(raw) {
-        const lines = raw.toUpperCase().split(/\r?\n/)
-.map(l => l.replace(/\s+/g, '').replace(/[^A-Z0-9<]/g, ''))
-.filter(l => l.length >= 28 && l.includes('<'));
-if (lines.length < 2) return false;
-for (let i = 0; i < lines.length - 1; i++) {
-if (lines[i].length >= 40 && lines[i+1].length >= 40 && lines[i].startsWith('P')) {
-const l1 = lines[i].padEnd(44, '<'), l2 = lines[i+1].padEnd(44, '<');
-const names = l1.substring(5).split('<<');
-setFields('P', l1.substring(2,5), names, names, l2.substring(0,9), l2.substring(10,13), l2.substring(13,19), l2.substring(20,21), l2.substring(21,27));
-return true;
+let loadedImg = null;
+let activeTerm = localStorage.getItem('concord_term_v5') || 'T1';
+document.getElementById('terminalSelect').value = activeTerm;
+// Date di default: Arrivo oggi, Partenza domani
+const today = new Date();
+const tomorrow = new Date(today);
+tomorrow.setDate(tomorrow.getDate() + 1);
+document.getElementById('arrivalDate').valueAsDate = today;
+document.getElementById('departureDate').valueAsDate = tomorrow;
+function storageKey() { return 'concord_guests_v5_' + activeTerm; }
+function switchTerminal() {
+activeTerm = document.getElementById('terminalSelect').value;
+localStorage.setItem('concord_term_v5', activeTerm);
+document.getElementById('btnTermText').textContent = activeTerm;
+renderGuestTable();
 }
+function notify(msg, type = 'info') {
+const box = document.getElementById('statusBox');
+box.style.display = 'block';
+if (type === 'error') {
+box.style.background = '#fee2e2'; box.style.color = '#991b1b';
+} else if (type === 'ok') {
+box.style.background = '#dcfce7'; box.style.color = '#166534';
+} else {
+box.style.background = '#e0f2fe'; box.style.color = '#075985';
 }
-for (let i = 0; i < lines.length - 2; i++) {
-if (lines[i].length >= 28 && lines[i+1].length >= 28 && lines[i+2].length >= 28) {
-const l1 = lines[i].padEnd(30, '<'), l2 = lines[i+1].padEnd(30, '<'), l3 = lines[i+2].padEnd(30, '<');
-if (/^[ICA]/.test(l1)) {
-const names = l3.split('<<');
-setFields('ID', l1.substring(2,5), names, names, l1.substring(5,14), l2.substring(15,18), l2.substring(0,6), l2.substring(7,8), l2.substring(8,14));
-return true;
+box.textContent = msg;
 }
-}
-}
-return false;
-}
-function setFields(type, iss, ln, fn, num, nat, dob, sex, exp) {
-document.getElementById('docType').value = type;
-document.getElementById('iss').value = iss.replace(/</g, '');
-document.getElementById('lastName').value = (ln || '').replace(/</g, ' ').trim();
-document.getElementById('firstName').value = (fn || '').replace(/</g, ' ').trim();
-document.getElementById('docNum').value = num.replace(/</g, '');
-document.getElementById('nat').value = nat.replace(/</g, '');
-document.getElementById('dob').value = fmtDate(dob, false);
-document.getElementById('sex').value = (sex === 'F') ? 'F' : 'M';
-document.getElementById('exp').value = fmtDate(exp, true);
-}
-function fmtDate(s, isExp) {
-if (!/^\d{6}$/.test(s)) return '';
-const yy = parseInt(s.substring(0,2), 10), cur = new Date().getFullYear() % 100;
-const yyyy = isExp ? (2000 + yy) : (yy > cur ? 1900 + yy : 2000 + yy);
-return ${s.substring(4,6)}/${s.substring(2,4)}/${yyyy};
-}
-function addGuest() {
-const ln = document.getElementById('lastName').value.trim().toUpperCase();
-const fn = document.getElementById('firstName').value.trim().toUpperCase();
-if (!ln || !fn) return alert('Inserisci Cognome e Nome.');
-guests.push({
-"Room": document.getElementById('room').value.trim(),
-"Last Name": ln, "First Name": fn,
-"Gender": document.getElementById('sex').value,
-"Date of Birth": document.getElementById('dob').value.trim(),
-"Nationality": document.getElementById('nat').value.trim().toUpperCase(),
-"ID Type": document.getElementById('docType').value,
-"ID Number": document.getElementById('docNum').value.trim().toUpperCase(),
-"ID Expiry Date": document.getElementById('exp').value.trim(),
-"Issuing Country": document.getElementById('iss').value.trim().toUpperCase(),
-"Arrival": document.getElementById('arr').value.split('-').reverse().join('/'),
-"Departure": document.getElementById('dep').value.split('-').reverse().join('/')
+// 1. GESTIONE FOTOCAMERA NATIVA SAMSUNG
+document.getElementById('nativeCam').addEventListener('change', function(e) {
+const file = e.target.files[0];
+if (!file) return;
+notify('Elaborazione foto ad alto contrasto...', 'info');
+const reader = new FileReader();
+reader.onload = function(ev) {
+const img = new Image();
+img.onload = function() {
+loadedImg = img;
+redrawCanvas();
+executeOCR();
+};
+img.src = ev.target.result;
+};
+reader.readAsDataURL(file);
 });
-localStorage.setItem('hc_guests_' + term, JSON.stringify(guests));
-render();
-['lastName','firstName','dob','docNum','exp'].forEach(id => document.getElementById(id).value = '');
-notify(✅ ${ln} ${fn} aggiunto alla lista!);
+function redrawCanvas() {
+if (!loadedImg) return;
+const canvas = document.getElementById('ocrCanvas');
+const ctx = canvas.getContext('2d');
+const thresh = parseInt(document.getElementById('thresh').value, 10);
+const maxW = 1600;
+let w = loadedImg.width;
+let h = loadedImg.height;
+if (w > maxW) {
+h = Math.round(h * (maxW / w));
+w = maxW;
 }
-function render() {
-document.getElementById('count').innerText = guests.length;
-document.getElementById('list').innerHTML = guests.length ? guests.map((g, i) =>  <div class="item"> <div><b>${g["Last Name"]} ${g["First Name"]}</b> (Cam. ${g["Room"] || '-'})<br> <small>${g["ID Type"]}: ${g["ID Number"]} | ${g["Nationality"]} | ${g["Date of Birth"]}</small></div> <button class="del" onclick="guests.splice(${i},1);localStorage.setItem('hc_guests_'+term,JSON.stringify(guests));render();">✕</button> </div>).join('') : 'Nessun ospite in lista.';
+canvas.width = w;
+canvas.height = h;
+ctx.drawImage(loadedImg, 0, 0, w, h);
+const imgData = ctx.getImageData(0, 0, w, h);
+const px = imgData.data;
+for (let i = 0; i < px.length; i += 4) {
+const lum = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+const bin = lum < thresh ? 0 : 255;
+px[i] = px[i + 1] = px[i + 2] = bin;
 }
-function clearList() {
-if (guests.length && confirm('Svuotare la lista di ' + term + '?')) {
-guests = []; localStorage.setItem('hc_guests_' + term, '[]'); render();
+ctx.putImageData(imgData, 0, 0);
+document.getElementById('previewArea').style.display = 'block';
+}
+async function executeOCR() {
+const canvas = document.getElementById('ocrCanvas');
+notify('Lettura caratteri MRZ in corso (attendere 3-5 sec)...', 'info');
+try {
+const worker = await Tesseract.createWorker('eng');
+await worker.setParameters({
+tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<',
+tessedit_pageseg_mode: '6'
+});
+const res = await worker.recognize(canvas);
+await worker.terminate();
+document.getElementById('mrzInput').value = res.data.text.trim();
+decodeMRZ();
+} catch (err) {
+notify('Lettura foto non riuscita. Usa il tasto giallo "Incolla testo copiato da Samsung".', 'error');
 }
 }
-function exportExcel() {
-if (!guests.length) return alert('Lista vuota.');
+// 2. INCOLLA DA SAMSUNG OCR NATIVO
+async function pasteSamsungText() {
+try {
+const txt = await navigator.clipboard.readText();
+if (!txt || txt.trim().length < 15) {
+notify('Appunti vuoti: inquadra prima il documento con la Fotocamera Samsung, tocca la "T" gialla -> Copia, poi ripremi qui.', 'error');
+return;
+}
+document.getElementById('mrzInput').value = txt.trim();
+decodeMRZ();
+} catch (e) {
+const area = document.getElementById('mrzInput');
+area.focus();
+notify('Tieni premuto nel riquadro grigio qui sotto e scegli "Incolla", poi premi "Estrai Dati".', 'info');
+}
+}
+// 3. DECODIFICA MRZ (TD1 CIE + TD3 PASSAPORTO)
+function decodeMRZ() {
+const raw = document.getElementById('mrzInput').value.toUpperCase();
+const lines = raw.split(/\r?\n/)
+.map(l => l.replace(/\s+/g, '').replace(/[^A-Z0-9<]/g, ''))
+.filter(l => l.length >= 26 && (l.includes('<') || /^[A-Z0-9]{28,44}$/.test(l)));
+if (lines.length < 2) {
+notify('Righe MRZ non trovate. Assicurati di aver inquadrato o copiato le righe con i simboli <<<.', 'error');
+return;
+}
+try {
+// Passaporto (TD3: 2 righe da 44 caratteri)
+if (lines.length === 2 || lines[0].length >= 38) {
+const l1 = lines[lines.length - 2].padEnd(44, '<');
+const l2 = lines[lines.length - 1].padEnd(44, '<');
+document.getElementById('docType').value = 'P';
+document.getElementById('issuingCountry').value = l1.substring(2, 5).replace(/</g, '');
+const names = l1.substring(5).split('<<');
+document.getElementById('lastName').value = (names[0] || '').replace(/</g, ' ').trim();
+document.getElementById('firstName').value = (names[1] || '').replace(/</g, ' ').trim();
+document.getElementById('docNumber').value = l2.substring(0, 9).replace(/</g, '');
+document.getElementById('nationality').value = l2.substring(10, 13).replace(/</g, '');
+document.getElementById('birthDate').value = parseDateMRZ(l2.substring(13, 19), true);
+document.getElementById('gender').value = l2.substring(20, 21) === 'F' ? 'F' : 'M';
+document.getElementById('expiryDate').value = parseDateMRZ(l2.substring(21, 27), false);
+notify('Passaporto letto correttamente! Verifica i dati qui sotto.', 'ok');
+}
+// Carta d'Identità Elettronica CIE (TD1: 3 righe da 30 caratteri)
+else if (lines.length >= 3) {
+const l1 = lines[lines.length - 3].padEnd(30, '<');
+const l2 = lines[lines.length - 2].padEnd(30, '<');
+const l3 = lines[lines.length - 1].padEnd(30, '<');
+document.getElementById('docType').value = 'ID';
+document.getElementById('issuingCountry').value = l1.substring(2, 5).replace(/</g, '');
+document.getElementById('docNumber').value = l1.substring(5, 14).replace(/</g, '');
+document.getElementById('birthDate').value = parseDateMRZ(l2.substring(0, 6), true);
+document.getElementById('gender').value = l2.substring(7, 8) === 'F' ? 'F' : 'M';
+document.getElementById('expiryDate').value = parseDateMRZ(l2.substring(8, 14), false);
+document.getElementById('nationality').value = l2.substring(15, 18).replace(/</g, '');
+const names = l3.split('<<');
+document.getElementById('lastName').value = (names[0] || '').replace(/</g, ' ').trim();
+document.getElementById('firstName').value = (names[1] || '').replace(/</g, ' ').trim();
+notify('Carta d'Identità (CIE) letta correttamente! Verifica i dati qui sotto.', 'ok');
+}
+} catch (err) {
+notify('Errore nella decodifica. Controlla eventuali caratteri sporchi nel riquadro MRZ.', 'error');
+}
+}
+function parseDateMRZ(yymmdd, isBirth) {
+if (!/^\d{6}$/.test(yymmdd)) return '';
+const yy = parseInt(yymmdd.substring(0, 2), 10);
+const mm = yymmdd.substring(2, 4);
+const dd = yymmdd.substring(4, 6);
+const curYY = new Date().getFullYear() % 100;
+const century = isBirth ? (yy > curYY ? '19' : '20') : '20';
+return ${century}${yymmdd.substring(0, 2)}-${mm}-${dd};
+}
+// 4. SALVATAGGIO LISTA & EXCEL
+function loadList() { return JSON.parse(localStorage.getItem(storageKey()) || '[]'); }
+function storeList(arr) { localStorage.setItem(storageKey(), JSON.stringify(arr)); renderGuestTable(); }
+function saveGuestToList() {
+const lastName = document.getElementById('lastName').value.trim().toUpperCase();
+const firstName = document.getElementById('firstName').value.trim().toUpperCase();
+if (!lastName || !firstName) {
+alert('Inserisci almeno Cognome e Nome prima di aggiungere.');
+return;
+}
+const item = {
+Terminal: activeTerm,
+Room: document.getElementById('roomNumber').value.trim(),
+LastName: lastName,
+FirstName: firstName,
+Gender: document.getElementById('gender').value,
+DateOfBirth: document.getElementById('birthDate').value,
+Nationality: document.getElementById('nationality').value.trim().toUpperCase(),
+IssuingCountry: document.getElementById('issuingCountry').value.trim().toUpperCase(),
+DocType: document.getElementById('docType').value,
+DocNumber: document.getElementById('docNumber').value.trim().toUpperCase(),
+DocExpiry: document.getElementById('expiryDate').value,
+Arrival: document.getElementById('arrivalDate').value,
+Departure: document.getElementById('departureDate').value
+};
+const list = loadList();
+list.push(item);
+storeList(list);
+['lastName', 'firstName', 'docNumber', 'birthDate', 'nationality', 'issuingCountry', 'expiryDate', 'mrzInput'].forEach(id => {
+document.getElementById(id).value = '';
+});
+document.getElementById('previewArea').style.display = 'none';
+notify(Ospite ${lastName} ${firstName} aggiunto a ${activeTerm}!, 'ok');
+}
+function removeGuest(idx) {
+const list = loadList();
+list.splice(idx, 1);
+storeList(list);
+}
+function clearAllGuests() {
+if (confirm(Cancellare tutta la lista del ${activeTerm}?)) storeList([]);
+}
+function renderGuestTable() {
+const list = loadList();
+document.getElementById('countBadge').textContent = list.length;
+document.getElementById('btnTermText').textContent = activeTerm;
+const tbody = document.getElementById('guestListBody');
+tbody.innerHTML = '';
+list.forEach((g, i) => {
+const tr = document.createElement('tr');
+tr.innerHTML = `
+\({g.LastName}</strong><br><small>\){g.FirstName}
+\(g.DocType\){g.DocNumber}
+${g.Nationality}
+${g.Room || '-'}
+✕
+`;
+tbody.appendChild(tr);
+});
+}
+function downloadProtelExcel() {
+const list = loadList();
+if (list.length === 0) {
+alert('Nessun ospite in lista da esportare.');
+return;
+}
+const rows = list.map(g => ({
+'Room': g.Room,
+'Last Name': g.LastName,
+'First Name': g.FirstName,
+'Gender': g.Gender,
+'Date of Birth': g.DateOfBirth,
+'Nationality': g.Nationality,
+'ID Type': g.DocType,
+'ID Number': g.DocNumber,
+'Issuing Country': g.IssuingCountry,
+'ID Expiry': g.DocExpiry,
+'Arrival': g.Arrival,
+'Departure': g.Departure,
+'Terminal': g.Terminal
+}));
+const ws = XLSX.utils.json_to_sheet(rows);
 const wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(guests), "RoomingList");
-XLSX.writeFile(wb, RoomingList_protel_${term}_${new Date().toISOString().split('T')}.xlsx);
+XLSX.utils.book_append_sheet(wb, ws, 'RoomingList');
+const dateStr = new Date().toISOString().slice(0, 10);
+XLSX.writeFile(wb, ConcordTorino_protel_${activeTerm}_${dateStr}.xlsx);
 }
+renderGuestTable();
