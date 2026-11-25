@@ -3,484 +3,144 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Hotel Concord Torino — Check-in protel PMS</title>
-  <script src="https://jsdelivr.net"></script>
-  <script src="https://jsdelivr.net"></script>
+  <title>Scanner Concord — Samsung A16</title>
+  <script src="https://unpkg.com"></script>
   <style>
-    :root {
-      --navy: #0f2537;
-      --navy-light: #1e3a5f;
-      --gold: #c59b27;
-      --bg: #f1f5f9;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #64748b;
-      --border: #cbd5e1;
-      --green: #15803d;
-      --red: #dc2626;
-    }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { margin: 0; padding: 12px; background: var(--bg); color: var(--text); padding-bottom: 40px; }
+    body {
+      margin: 0; padding: 20px; background: #0f2537; color: #fff;
+      display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh;
+    }
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; letter-spacing: 1px; color: #c59b27; }
+    .header p { font-size: 12px; color: #cbd5e1; margin: 4px 0 0 0; }
 
-    .topbar {
-      background: linear-gradient(135deg, var(--navy), var(--navy-light));
-      color: #fff; padding: 14px 16px; border-radius: 12px;
-      display: flex; justify-content: space-between; align-items: center;
-      box-shadow: 0 4px 12px rgba(15,37,55,0.18); margin-bottom: 14px;
+    .box {
+      background: #1e3a5f; padding: 24px 18px; border-radius: 16px;
+      text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
     }
-    .topbar h1 { margin: 0; font-size: 16px; letter-spacing: 0.4px; }
-    .topbar p { margin: 2px 0 0 0; font-size: 11px; color: #e2e8f0; }
-    .term-badge {
-      background: var(--gold); color: #000; font-weight: 800; border: none;
-      padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer;
+    label.lbl { display: block; font-size: 12px; text-transform: uppercase; color: #cbd5e1; margin-bottom: 8px; font-weight: 700; }
+    select {
+      width: 100%; padding: 14px; font-size: 18px; font-weight: 800;
+      border-radius: 10px; border: 2px solid #c59b27; background: #fff; color: #0f2537;
+      margin-bottom: 24px; text-align: center;
     }
-
-    .card {
-      background: var(--card); border-radius: 12px; padding: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 14px; border: 1px solid #e2e8f0;
+    .btn-cam {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 24px 16px; background: #c59b27; color: #000;
+      font-size: 18px; font-weight: 900; border-radius: 14px; border: none;
+      cursor: pointer; box-shadow: 0 6px 16px rgba(197,155,39,0.4);
     }
-    .card-title {
-      font-size: 14px; font-weight: 700; color: var(--navy); text-transform: uppercase;
-      letter-spacing: 0.5px; margin: 0 0 12px 0;
-    }
-
-    .action-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-    .btn {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%; padding: 14px; border-radius: 10px; border: none;
-      font-size: 15px; font-weight: 700; cursor: pointer;
-    }
-    .btn:active { opacity: 0.85; }
-    .btn-camera { background: var(--navy); color: #fff; }
-    .btn-samsung { background: var(--gold); color: #000; }
-    .btn-parse { background: #e2e8f0; color: var(--navy); padding: 10px; font-size: 13px; margin-top: 8px; }
-    .btn-save { background: var(--green); color: #fff; margin-top: 14px; font-size: 16px; }
-    .btn-excel { background: #0f766e; color: #fff; font-size: 16px; }
-
+    .btn-cam:active { transform: scale(0.97); }
     input[type="file"] { display: none; }
 
-    #statusBox {
-      display: none; padding: 10px 12px; border-radius: 8px; font-size: 13px;
-      font-weight: 600; margin-top: 10px; line-height: 1.4;
+    #msg {
+      margin-top: 20px; padding: 12px; border-radius: 10px; font-size: 14px;
+      font-weight: 700; background: rgba(255,255,255,0.1); color: #e2e8f0;
     }
-    #previewArea { display: none; margin-top: 12px; text-align: center; background: #f8fafc; padding: 8px; border-radius: 8px; border: 1px dashed var(--border); }
-    #previewArea canvas { max-width: 100%; max-height: 160px; border-radius: 6px; }
-    .contrast-bar { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; }
-    .contrast-bar input { flex: 1; }
-
-    textarea {
-      width: 100%; height: 76px; margin-top: 8px; padding: 10px; border-radius: 8px;
-      border: 1px solid var(--border); font-family: monospace; font-size: 12px;
-      text-transform: uppercase; background: #f8fafc;
-    }
-
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .field { display: flex; flex-direction: column; }
-    label { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
-    input[type="text"], input[type="date"], select.input-std {
-      width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;
-      font-size: 14px; background: #fff; color: var(--text);
-    }
-
-    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
-    th { text-align: left; font-size: 11px; color: var(--muted); border-bottom: 2px solid var(--border); padding: 6px 4px; }
-    td { padding: 10px 4px; border-bottom: 1px solid #e2e8f0; }
-    .btn-del { background: #fee2e2; color: var(--red); border: none; border-radius: 6px; padding: 6px 10px; font-weight: bold; }
-    .btn-clear { background: none; border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 600; }
-    .tip { font-size: 12px; color: var(--muted); background: #f8fafc; padding: 8px 10px; border-radius: 8px; border-left: 3px solid var(--gold); margin-bottom: 10px; }
+    .footer { text-align: center; font-size: 11px; color: #94a3b8; }
   </style>
 </head>
 <body>
 
-  <div class="topbar">
-    <div>
-      <h1>HOTEL CONCORD TORINO</h1>
-      <p>Check-in Rapido &rarr; protel Cloud PMS (v5.1)</p>
-    </div>
-    <select id="terminalSelect" class="term-badge" onchange="switchTerminal()">
+  <div class="header">
+    <h1>HOTEL CONCORD TORINO</h1>
+    <p>Acquisizione Documenti — Solo Fotocamera</p>
+  </div>
+
+  <div class="box">
+    <label class="lbl" for="termSelect">1. Seleziona Terminale PC</label>
+    <select id="termSelect" onchange="saveTerm()">
       <option value="T1">TERMINALE 1</option>
       <option value="T2">TERMINALE 2</option>
     </select>
+
+    <label for="camInput" class="btn-cam">
+      📷 APRI FOTOCAMERA
+    </label>
+    <input type="file" id="camInput" accept="image/*" capture="environment">
+
+    <div id="msg">Pronto. Inquadra le righe con &lt;&lt;&lt;</div>
   </div>
 
-  <!-- STEP 1: ACQUISIZIONE -->
-  <div class="card">
-    <div class="card-title">1. Acquisisci Documento (CIE o Passaporto)</div>
-    <div class="tip">
-      <strong>Consiglio:</strong> Inquadra in orizzontale <b>solo le righe in basso con &lt;&lt;&lt;</b> (retro CIE o fondo Passaporto).
-    </div>
-
-    <div class="action-grid">
-      <label for="nativeCam" class="btn btn-camera">
-        📷 SCATTA FOTO MRZ (FOTOCAMERA)
-      </label>
-      <input type="file" id="nativeCam" accept="image/*" capture="environment">
-
-      <button type="button" class="btn btn-samsung" onclick="pasteSamsungText()">
-        📋 INCOLLA TESTO COPIATO DA SAMSUNG
-      </button>
-    </div>
-
-    <div id="statusBox"></div>
-
-    <div id="previewArea">
-      <canvas id="ocrCanvas"></canvas>
-      <div class="contrast-bar">
-        <span>Contrasto:</span>
-        <input type="range" id="thresh" min="75" max="205" value="130" onchange="redrawCanvas()">
-        <button type="button" onclick="executeOCR()" style="background:var(--navy);color:#fff;border:none;padding:6px 10px;border-radius:6px;font-weight:bold;">Rileggi</button>
-      </div>
-    </div>
-
-    <textarea id="mrzInput" placeholder="Qui compariranno le righe MRZ (es. C<ITA...)"></textarea>
-    <button type="button" class="btn btn-parse" onclick="decodeMRZ()">⚡ Estrai Dati nei Campi Sottostanti</button>
-  </div>
-
-  <!-- STEP 2: DATI OSPITE -->
-  <div class="card">
-    <div class="card-title">2. Verifica Dati Ospite</div>
-    <div class="grid-2">
-      <div class="field">
-        <label>Cognome *</label>
-        <input type="text" id="lastName" placeholder="ROSSI">
-      </div>
-      <div class="field">
-        <label>Nome *</label>
-        <input type="text" id="firstName" placeholder="MARIO">
-      </div>
-      <div class="field">
-        <label>Tipo Doc.</label>
-        <select id="docType" class="input-std">
-          <option value="ID">Carta Identità (CIE)</option>
-          <option value="P">Passaporto</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Numero Documento *</label>
-        <input type="text" id="docNumber" placeholder="CA00000AA">
-      </div>
-      <div class="field">
-        <label>Data di Nascita</label>
-        <input type="date" id="birthDate">
-      </div>
-      <div class="field">
-        <label>Sesso</label>
-        <select id="gender" class="input-std">
-          <option value="M">M</option>
-          <option value="F">F</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Nazionalità (ISO 3)</label>
-        <input type="text" id="nationality" maxlength="3" placeholder="ITA">
-      </div>
-      <div class="field">
-        <label>Paese Rilascio</label>
-        <input type="text" id="issuingCountry" maxlength="3" placeholder="ITA">
-      </div>
-      <div class="field">
-        <label>Scadenza Doc.</label>
-        <input type="date" id="expiryDate">
-      </div>
-      <div class="field">
-        <label>Numero Camera</label>
-        <input type="text" id="roomNumber" placeholder="Es. 305">
-      </div>
-      <div class="field">
-        <label>Data Arrivo</label>
-        <input type="date" id="arrivalDate">
-      </div>
-      <div class="field">
-        <label>Data Partenza</label>
-        <input type="date" id="departureDate">
-      </div>
-    </div>
-
-    <button type="button" class="btn btn-save" onclick="saveGuestToList()">
-      ✅ AGGIUNGI OSPITE (<span id="btnTermText">T1</span>)
-    </button>
-  </div>
-
-  <!-- STEP 3: LISTA & EXPORT -->
-  <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-      <div class="card-title" style="margin:0;">3. Lista Pronta (<span id="countBadge">0</span>)</div>
-      <button type="button" class="btn-clear" onclick="clearAllGuests()">Svuota</button>
-    </div>
-
-    <div style="overflow-x:auto;">
-      <table>
-        <thead>
-          <tr>
-            <th>Ospite</th>
-            <th>Documento</th>
-            <th>Naz.</th>
-            <th>Cam.</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="guestListBody"></tbody>
-      </table>
-    </div>
-
-    <div style="margin-top:14px;">
-      <button type="button" class="btn btn-excel" onclick="downloadProtelExcel()">
-        📥 SCARICA EXCEL PROTEL (.XLSX)
-      </button>
-    </div>
+  <div class="footer">
+    Nessun dato viene salvato sul telefono.<br>La foto viene inviata istantaneamente al PC selezionato.
   </div>
 
 <script>
-  let loadedImg = null;
-  let activeTerm = localStorage.getItem('concord_term_v5') || 'T1';
-  document.getElementById('terminalSelect').value = activeTerm;
+  const termSelect = document.getElementById('termSelect');
+  termSelect.value = localStorage.getItem('concord_mobile_term') || 'T1';
 
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  document.getElementById('arrivalDate').valueAsDate = today;
-  document.getElementById('departureDate').valueAsDate = tomorrow;
+  function saveTerm() {
+    localStorage.setItem('concord_mobile_term', termSelect.value);
+    setMsg('Impostato su ' + termSelect.value + '. Pronto a scattare.', '#e2e8f0');
+  }
 
-  function storageKey() { return 'concord_guests_v5_' + activeTerm; }
+  function setMsg(text, color) {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.style.color = color;
+  }
 
-  function switchTerminal() {
-    activeTerm = document.getElementById('terminalSelect').value;
-localStorage.setItem('concord_term_v5', activeTerm);
-document.getElementById('btnTermText').textContent = activeTerm;
-renderGuestTable();
-}
-function notify(msg, type = 'info') {
-const box = document.getElementById('statusBox');
-box.style.display = 'block';
-if (type === 'error') {
-box.style.background = '#fee2e2'; box.style.color = '#991b1b';
-} else if (type === 'ok') {
-box.style.background = '#dcfce7'; box.style.color = '#166534';
-} else {
-box.style.background = '#e0f2fe'; box.style.color = '#075985';
-}
-box.textContent = msg;
-}
-// 1. GESTIONE FOTOCAMERA NATIVA SAMSUNG (FIX files[0] + ObjectURL)
-document.getElementById('nativeCam').addEventListener('change', function(e) {
-const file = e.target.files && e.target.files[0];
-if (!file) return;
-notify('Foto ricevuta! Applicazione filtro alto contrasto...', 'info');
-const objectUrl = URL.createObjectURL(file);
-const img = new Image();
-img.onload = function() {
-URL.revokeObjectURL(objectUrl);
-loadedImg = img;
-redrawCanvas();
-executeOCR();
-e.target.value = '';
-};
-img.onerror = function() {
-notify('Errore nel caricamento della foto. Riprova.', 'error');
-};
-img.src = objectUrl;
-});
-function redrawCanvas() {
-if (!loadedImg) return;
-const canvas = document.getElementById('ocrCanvas');
-const ctx = canvas.getContext('2d');
-const thresh = parseInt(document.getElementById('thresh').value, 10);
-const maxW = 1400;
-let w = loadedImg.width;
-let h = loadedImg.height;
-if (w > maxW) {
-h = Math.round(h * (maxW / w));
-w = maxW;
-}
-canvas.width = w;
-canvas.height = h;
-ctx.drawImage(loadedImg, 0, 0, w, h);
-const imgData = ctx.getImageData(0, 0, w, h);
-const px = imgData.data;
-for (let i = 0; i < px.length; i += 4) {
-const lum = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
-const bin = lum < thresh ? 0 : 255;
-px[i] = px[i + 1] = px[i + 2] = bin;
-}
-ctx.putImageData(imgData, 0, 0);
-document.getElementById('previewArea').style.display = 'block';
-}
-async function executeOCR() {
-const canvas = document.getElementById('ocrCanvas');
-notify('Lettura caratteri MRZ in corso (3-5 secondi)...', 'info');
-try {
-const worker = await Tesseract.createWorker('eng');
-await worker.setParameters({
-tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<',
-tessedit_pageseg_mode: '6'
-});
-const res = await worker.recognize(canvas);
-await worker.terminate();
-document.getElementById('mrzInput').value = res.data.text.trim();
-decodeMRZ();
-} catch (err) {
-notify('Errore motore OCR: regola il contrasto o usa "Incolla testo copiato da Samsung".', 'error');
-}
-}
-// 2. INCOLLA DA SAMSUNG OCR NATIVO
-async function pasteSamsungText() {
-try {
-const txt = await navigator.clipboard.readText();
-if (!txt || txt.trim().length < 15) {
-notify('Appunti vuoti: copia prima il testo dalla foto Samsung (icona "T"), poi premi qui.', 'error');
-return;
-}
-document.getElementById('mrzInput').value = txt.trim();
-decodeMRZ();
-} catch (e) {
-const area = document.getElementById('mrzInput');
-area.focus();
-notify('Tieni premuto nel riquadro grigio qui sotto e scegli "Incolla", poi premi "Estrai Dati".', 'info');
-}
-}
-// 3. DECODIFICA MRZ (TD1 CIE + TD3 PASSAPORTO)
-function decodeMRZ() {
-const raw = document.getElementById('mrzInput').value.toUpperCase();
-const lines = raw.split(/\r?\n/)
-.map(l => l.replace(/\s+/g, '').replace(/[^A-Z0-9<]/g, ''))
-.filter(l => l.length >= 26 && (l.includes('<') || /^[A-Z0-9]{28,44}$/.test(l)));
-if (lines.length < 2) {
-notify('Righe MRZ non rilevate: regola lo slider Contrasto e premi "Rileggi", oppure inquadra più da vicino le righe <<<.', 'error');
-return;
-}
-try {
-const lastLine = lines[lines.length - 1];
-// Passaporto (TD3: 2 righe da 44 caratteri)
-if (lines.length === 2 || lastLine.length >= 38) {
-const l1 = lines[lines.length - 2].padEnd(44, '<');
-const l2 = lastLine.padEnd(44, '<');
-document.getElementById('docType').value = 'P';
-document.getElementById('issuingCountry').value = l1.substring(2, 5).replace(/</g, '');
-const names = l1.substring(5).split('<<');
-document.getElementById('lastName').value = (names[0] || '').replace(/</g, ' ').trim();
-document.getElementById('firstName').value = (names[1] || '').replace(/</g, ' ').trim();
-document.getElementById('docNumber').value = l2.substring(0, 9).replace(/</g, '');
-document.getElementById('nationality').value = l2.substring(10, 13).replace(/</g, '');
-document.getElementById('birthDate').value = parseDateMRZ(l2.substring(13, 19), true);
-document.getElementById('gender').value = l2.substring(20, 21) === 'F' ? 'F' : 'M';
-document.getElementById('expiryDate').value = parseDateMRZ(l2.substring(21, 27), false);
-notify('Passaporto estratto! Controlla i dati qui sotto e premi Aggiungi.', 'ok');
-}
-// Carta d'Identità Elettronica CIE (TD1: 3 righe da 30 caratteri)
-else if (lines.length >= 3) {
-const l1 = lines[lines.length - 3].padEnd(30, '<');
-const l2 = lines[lines.length - 2].padEnd(30, '<');
-const l3 = lastLine.padEnd(30, '<');
-document.getElementById('docType').value = 'ID';
-document.getElementById('issuingCountry').value = l1.substring(2, 5).replace(/</g, '');
-document.getElementById('docNumber').value = l1.substring(5, 14).replace(/</g, '');
-document.getElementById('birthDate').value = parseDateMRZ(l2.substring(0, 6), true);
-document.getElementById('gender').value = l2.substring(7, 8) === 'F' ? 'F' : 'M';
-document.getElementById('expiryDate').value = parseDateMRZ(l2.substring(8, 14), false);
-document.getElementById('nationality').value = l2.substring(15, 18).replace(/</g, '');
-const names = l3.split('<<');
-document.getElementById('lastName').value = (names[0] || '').replace(/</g, ' ').trim();
-document.getElementById('firstName').value = (names[1] || '').replace(/</g, ' ').trim();
-notify('Carta d'Identità (CIE) estratta! Controlla i dati qui sotto e premi Aggiungi.', 'ok');
-}
-} catch (err) {
-notify('Errore nella decodifica delle righe MRZ. Verifica il testo nel riquadro.', 'error');
-}
-}
-function parseDateMRZ(yymmdd, isBirth) {
-if (!/^\d{6}$/.test(yymmdd)) return '';
-const yy = parseInt(yymmdd.substring(0, 2), 10);
-const mm = yymmdd.substring(2, 4);
-const dd = yymmdd.substring(4, 6);
-const curYY = new Date().getFullYear() % 100;
-const century = isBirth ? (yy > curYY ? '19' : '20') : '20';
-return ${century}${yymmdd.substring(0, 2)}-${mm}-${dd};
-}
-// 4. SALVATAGGIO LISTA & EXCEL
-function loadList() { return JSON.parse(localStorage.getItem(storageKey()) || '[]'); }
-function storeList(arr) { localStorage.setItem(storageKey(), JSON.stringify(arr)); renderGuestTable(); }
-function saveGuestToList() {
-const lastName = document.getElementById('lastName').value.trim().toUpperCase();
-const firstName = document.getElementById('firstName').value.trim().toUpperCase();
-if (!lastName || !firstName) {
-alert('Inserisci almeno Cognome e Nome prima di aggiungere.');
-return;
-}
-const item = {
-Terminal: activeTerm,
-Room: document.getElementById('roomNumber').value.trim(),
-LastName: lastName,
-FirstName: firstName,
-Gender: document.getElementById('gender').value,
-DateOfBirth: document.getElementById('birthDate').value,
-Nationality: document.getElementById('nationality').value.trim().toUpperCase(),
-IssuingCountry: document.getElementById('issuingCountry').value.trim().toUpperCase(),
-DocType: document.getElementById('docType').value,
-DocNumber: document.getElementById('docNumber').value.trim().toUpperCase(),
-DocExpiry: document.getElementById('expiryDate').value,
-Arrival: document.getElementById('arrivalDate').value,
-Departure: document.getElementById('departureDate').value
-};
-const list = loadList();
-list.push(item);
-storeList(list);
-['lastName', 'firstName', 'docNumber', 'birthDate', 'nationality', 'issuingCountry', 'expiryDate', 'mrzInput'].forEach(id => {
-document.getElementById(id).value = '';
-});
-document.getElementById('previewArea').style.display = 'none';
-notify(Ospite ${lastName} ${firstName} aggiunto a ${activeTerm}!, 'ok');
-}
-function removeGuest(idx) {
-const list = loadList();
-list.splice(idx, 1);
-storeList(list);
-}
-function clearAllGuests() {
-if (confirm(Cancellare tutta la lista del ${activeTerm}?)) storeList([]);
-}
-function renderGuestTable() {
-const list = loadList();
-document.getElementById('countBadge').textContent = list.length;
-document.getElementById('btnTermText').textContent = activeTerm;
-const tbody = document.getElementById('guestListBody');
-tbody.innerHTML = '';
-list.forEach((g, i) => {
-const tr = document.createElement('tr');
-tr.innerHTML = `
-\({g.LastName}</strong><br><small>\){g.FirstName}
-\(g.DocType\){g.DocNumber}
-${g.Nationality}
-${g.Room || '-'}
-✕
-`;
-tbody.appendChild(tr);
-});
-}
-function downloadProtelExcel() {
-const list = loadList();
-if (list.length === 0) {
-alert('Nessun ospite in lista da esportare.');
-return;
-}
-const rows = list.map(g => ({
-'Room': g.Room,
-'Last Name': g.LastName,
-'First Name': g.FirstName,
-'Gender': g.Gender,
-'Date of Birth': g.DateOfBirth,
-'Nationality': g.Nationality,
-'ID Type': g.DocType,
-'ID Number': g.DocNumber,
-'Issuing Country': g.IssuingCountry,
-'ID Expiry': g.DocExpiry,
-'Arrival': g.Arrival,
-'Departure': g.Departure,
-'Terminal': g.Terminal
-}));
-const ws = XLSX.utils.json_to_sheet(rows);
-const wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, ws, 'RoomingList');
-const dateStr = new Date().toISOString().slice(0, 10);
-XLSX.writeFile(wb, ConcordTorino_protel_${activeTerm}_${dateStr}.xlsx);
-}
-renderGuestTable();
+  // Ridimensiona la foto sul Samsung prima dell'invio (veloce e nitida per OCR su PC)
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const MAX_W = 1400;
+        let w = img.width;
+        let h = img.height;
+        if (w > MAX_W) {
+          h = Math.round(h * (MAX_W / w));
+          w = MAX_W;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
+  document.getElementById('camInput').addEventListener('change', async function(e) {
+    const file = e.target.files && e.target.files;
+    if (!file) return;
+
+    const targetTerm = termSelect.value;
+    const targetPeerId = 'hotel-concord-torino-' + targetTerm.toLowerCase();
+
+    setMsg('⏳ Invio foto a ' + targetTerm + ' in corso...', '#fde047');
+
+    try {
+      const dataUrl = await compressImage(file);
+      e.target.value = '';
+
+      const peer = new Peer();
+      peer.on('open', () => {
+        const conn = peer.connect(targetPeerId, { reliable: true });
+        conn.on('open', () => {
+          conn.send({ type: 'MRZ_PHOTO', image: dataUrl, terminal: targetTerm });
+          setMsg('✅ Foto inviata a ' + targetTerm + '! Pronto per il prossimo ospite.', '#4ade80');
+          setTimeout(() => peer.destroy(), 1500);
+        });
+        conn.on('error', () => {
+          setMsg('❌ PC ' + targetTerm + ' non trovato. Apri pc.html sul computer!', '#f87171');
+        });
+      });
+
+      peer.on('error', (err) => {
+        setMsg('❌ Errore connessione (' + err.type + '). Verifica che pc.html sia aperto sul PC.', '#f87171');
+      });
+    } catch (err) {
+      setMsg('❌ Errore lettura foto.', '#f87171');
+    }
+  });
+</script>
+</body>
+</html>
