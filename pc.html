@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Reception PC — Hotel Concord Torino (protel PMS)</title>
+  <script src="https://unpkg.com"></script>
+  <script src="https://jsdelivr.net"></script>
+  <script src="https://jsdelivr.net"></script>
+  <style>
+    :root {
+      --navy: #0f2537;
+      --gold: #c59b27;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #cbd5e1;
+      --green: #15803d;
+      --red: #dc2626;
+    }
+    * { box-sizing: border-box; font-family: "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; padding: 16px; background: var(--bg); color: #0f172a; }
+
+    header {
+      background: var(--navy); color: #fff; padding: 14px 20px; border-radius: 10px;
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+    }
+    header h1 { margin: 0; font-size: 18px; }
+    .conn-bar { display: flex; align-items: center; gap: 12px; }
+    select.term-sel {
+      background: var(--gold); color: #000; font-weight: 800; padding: 8px 14px;
+      border-radius: 8px; border: none; font-size: 14px; cursor: pointer;
+    }
+    #connStatus {
+      padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+      background: #334155; color: #fff;
+    }
+
+    .layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
+    .card {
+      background: var(--card); border-radius: 10px; padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;
+    }
+    .card h2 { margin: 0 0 12px 0; font-size: 15px; color: var(--navy); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+    .img-container {
+      background: #0f172a; border-radius: 8px; min-height: 200px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px;
+    }
+    canvas { max-width: 100%; max-height: 280px; }
+    .controls { display: flex; align-items: center; gap: 10px; font-size: 13px; margin-bottom: 10px; }
+    .controls input[type="range"] { flex: 1; }
+
+    textarea {
+      width: 100%; height: 72px; font-family: monospace; font-size: 13px;
+      padding: 8px; border-radius: 6px; border: 1px solid var(--border); text-transform: uppercase;
+    }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field { display: flex; flex-direction: column; }
+    label { font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; text-transform: uppercase; }
+    input[type="text"], input[type="date"], select.inp {
+      padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;
+    }
+
+    .btn {
+      padding: 10px 16px; border: none; border-radius: 8px; font-weight: 700;
+      cursor: pointer; font-size: 14px;
+    }
+    .btn-navy { background: var(--navy); color: #fff; }
+    .btn-gold { background: var(--gold); color: #000; width: 100%; margin-top: 6px; }
+    .btn-green { background: var(--green); color: #fff; width: 100%; margin-top: 12px; font-size: 15px; padding: 12px; }
+    .btn-excel { background: #0f766e; color: #fff; font-size: 15px; padding: 12px 20px; }
+    .btn-red { background: #fee2e2; color: var(--red); padding: 4px 8px; font-size: 12px; }
+
+    #ocrMsg { font-size: 13px; font-weight: 600; color: #1e40af; margin: 8px 0; min-height: 18px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+    th { text-align: left; background: #f8fafc; padding: 8px; border-bottom: 2px solid var(--border); color: var(--navy); }
+    td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>HOTEL CONCORD TORINO — CONSOLE RECEPTION</h1>
+    <small style="color:#cbd5e1;">Ricezione Foto da Samsung A16 &rarr; Revisione Dati &rarr; Export protel Cloud PMS</small>
+  </div>
+  <div class="conn-bar">
+    <span id="connStatus">Connessione al canale...</span>
+    <select id="pcTerm" class="term-sel" onchange="initPeer()">
+      <option value="T1">TERMINALE 1</option>
+      <option value="T2">TERMINALE 2</option>
+    </select>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- COLONNA SINISTRA: IMMAGINE RICEVUTA & OCR -->
+  <div class="card">
+    <h2>1. Foto Ricevuta dal Samsung &amp; Lettura MRZ</h2>
+    <div class="img-container">
+      <canvas id="docCanvas"></canvas>
+    </div>
+
+    <div class="controls">
+      <span>Contrasto:</span>
+      <input type="range" id="contrastSlider" min="70" max="200" value="125" onchange="applyContrast()">
+      <button class="btn btn-navy" onclick="runDesktopOCR()">Rileggi OCR</button>
+    </div>
+
+    <div id="ocrMsg">In attesa dello scatto dal Samsung A16...</div>
+
+    <label>Righe MRZ lette (modificabili manualmente):</label>
+    <textarea id="mrzBox" placeholder="Le righe <<< appariranno qui automaticamente allo scatto..."></textarea>
+    <button class="btn btn-gold" onclick="parseMRZText()">⚡ Compila Campi a Destra</button>
+  </div>
+
+  <!-- COLONNA DESTRA: MODULO DATI & CORREZIONI MANUALI -->
+  <div class="card">
+    <h2>2. Verifica / Correggi Dati Ospite (protel PMS)</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label>Cognome *</label>
+        <input type="text" id="lastName">
+      </div>
+      <div class="field">
+        <label>Nome *</label>
+        <input type="text" id="firstName">
+      </div>
+      <div class="field">
+        <label>Tipo Documento</label>
+        <select id="docType" class="inp">
+          <option value="ID">Carta d'Identità (CIE)</option>
+          <option value="P">Passaporto</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Numero Documento *</label>
+        <input type="text" id="docNumber">
+      </div>
+      <div class="field">
+        <label>Data di Nascita</label>
+        <input type="date" id="birthDate">
+      </div>
+      <div class="field">
+        <label>Sesso</label>
+        <select id="gender" class="inp">
+          <option value="M">M</option>
+          <option value="F">F</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nazionalità (ISO 3)</label>
+        <input type="text" id="nationality" maxlength="3" placeholder="ITA">
+      </div>
+      <div class="field">
+        <label>Paese Rilascio</label>
+        <input type="text" id="issuingCountry" maxlength="3" placeholder="ITA">
+      </div>
+      <div class="field">
+        <label>Scadenza Documento</label>
+        <input type="date" id="expiryDate">
+      </div>
+      <div class="field">
+        <label>Numero Camera</label>
+        <input type="text" id="roomNumber" placeholder="Es. 204">
+      </div>
+      <div class="field">
+        <label>Arrivo</label>
+        <input type="date" id="arrivalDate">
+      </div>
+      <div class="field">
+        <label>Partenza</label>
+        <input type="date" id="departureDate">
+      </div>
+    </div>
+
+    <button class="btn btn-green" onclick="addGuestToTable()">✅ CONFERMA E AGGIUNGI ALLA LISTA (<span id="lblTerm">T1</span>)</button>
+  </div>
+</div>
+
+<!-- TABELLA OSPITI PRONTI & EXPORT EXCEL -->
+<div class="card" style="margin-top:16px;">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2 style="border:none; margin:0;">3. Ospiti Pronti per Importazione protel (<span id="guestCount">0</span>)</h2>
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-red" onclick="clearTable()">Svuota Lista</button>
+      <button class="btn btn-excel" onclick="exportProtelExcel()">📥 INVIA / SCARICA EXCEL PER PROTEL (.XLSX)</button>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Camera</th>
+        <th>Cognome</th>
+        <th>Nome</th>
+        <th>Sesso</th>
+        <th>Data Nascita</th>
+        <th>Naz.</th>
+        <th>Tipo</th>
+        <th>N. Documento</th>
+        <th>Scadenza</th>
+        <th>Arrivo</th>
+        <th>Partenza</th>
+        <th>Azioni</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<script>
+  let peer = null;
+  let currentImg = null;
+  const termSel = document.getElementById('pcTerm');
+  termSel.value = localStorage.getItem('concord_pc_term') || 'T1';
+
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('arrivalDate').valueAsDate = today;
+  document.getElementById('departureDate').valueAsDate = tomorrow;
+
+  function getStoreKey() { return 'concord_pc_list_' + termSel.value; }
+
+  // 1. CONNESSIONE CANALE RICEZIONE DAL SAMSUNG
+  function initPeer() {
+    if (peer) peer.destroy();
+    const term = termSel.value;
+    localStorage.setItem('concord_pc_term', term);
+    document.getElementById('lblTerm').textContent = term;
+    renderTable();
+
+    const myId = 'hotel-concord-torino-' + term.toLowerCase();
+    const statusEl = document.getElementById('connStatus');
+    statusEl.textContent = 'Connessione...';
+    statusEl.style.background = '#b45309';
+
+    peer = new Peer(myId);
+
+    peer.on('open', () => {
+      statusEl.textContent = '🟢 PRONTO — In ascolto da Samsung (' + term + ')';
+      statusEl.style.background = '#15803d';
+    });
+
+    peer.on('connection', (conn) => {
+      conn.on('data', (data) => {
+        if (data && data.type === 'MRZ_PHOTO') {
+          document.getElementById('ocrMsg').textContent = '📸 Nuova foto ricevuta dal Samsung! Lettura OCR in corso...';
+          loadIncomingImage(data.image);
+        }
+      });
+    });
+
+    peer.on('error', (err) => {
+      if (err.type === 'unavailable-id') {
+        statusEl.textContent = '⚠️ Terminale ' + term + ' già aperto in un\'altra scheda!';
+        statusEl.style.background = '#dc2626';
+      } else {
+        statusEl.textContent = '❌ Errore rete (' + err.type + ')';
+        statusEl.style.background = '#dc2626';
+      }
+    });
+  }
+
+  function loadIncomingImage(dataUrl) {
+    const img = new Image();
+img.onload = () => {
+currentImg = img;
+applyContrast();
+runDesktopOCR();
+};
+img.src = dataUrl;
+}
+function applyContrast() {
+if (!currentImg) return;
+const canvas = document.getElementById('docCanvas');
+const ctx = canvas.getContext('2d');
+const thresh = parseInt(document.getElementById('contrastSlider').value, 10);
+canvas.width = currentImg.width;
+canvas.height = currentImg.height;
+ctx.drawImage(currentImg, 0, 0);
+const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+const d = imgData.data;
+for (let i = 0; i < d.length; i += 4) {
+const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+const v = gray < thresh ? 0 : 255;
+d[i] = d[i + 1] = d[i + 2] = v;
+}
+ctx.putImageData(imgData, 0, 0);
+}
+async function runDesktopOCR() {
+const canvas = document.getElementById('docCanvas');
+if (!canvas.width) return;
+document.getElementById('ocrMsg').textContent = '⏳ Estrazione testo MRZ su PC in corso...';
+try {
+const worker = await Tesseract.createWorker('eng');
+await worker.setParameters({
+tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<',
+tessedit_pageseg_mode: '6'
+});
+const { data: { text } } = await worker.recognize(canvas);
+await worker.terminate();
+document.getElementById('mrzBox').value = text.trim();
+parseMRZText();
+} catch (e) {
+document.getElementById('ocrMsg').textContent = '⚠️ Errore OCR. Regola il contrasto o compila manualmente a destra.';
+}
+}
+// 2. DECODIFICA MRZ (TD1 CIE e TD3 Passaporto)
+function parseMRZText() {
+const raw = document.getElementById('mrzBox').value.toUpperCase();
+const lines = raw.split(/\r?\n/)
+.map(l => l.replace(/\s+/g, '').replace(/[^A-Z0-9<]/g, ''))
+.filter(l => l.length >= 25 && (l.includes('<') || /^[A-Z0-9]{28,44}$/.test(l)));
+if (lines.length < 2) {
+document.getElementById('ocrMsg').textContent = '⚠️ Righe MRZ incomplete: regola lo slider Contrasto e clicca "Rileggi OCR", oppure correggi i campi a destra.';
+return;
+}
+const last = lines[lines.length - 1];
+// Passaporto TD3 (2 righe da 44)
+if (lines.length === 2 || last.length >= 38) {
+const l1 = lines[lines.length - 2].padEnd(44, '<');
+const l2 = last.padEnd(44, '<');
+document.getElementById('docType').value = 'P';
+document.getElementById('issuingCountry').value = l1.substring(2, 5).replace(/</g, '');
+const names = l1.substring(5).split('<<');
+document.getElementById('lastName').value = (names || '').replace(/</g, ' ').trim();
+document.getElementById('firstName').value = (names || '').replace(/</g, ' ').trim();
+document.getElementById('docNumber').value = l2.substring(0, 9).replace(/</g, '');
+document.getElementById('nationality').value = l2.substring(10, 13).replace(/</g, '');
+document.getElementById('birthDate').value = fmtDate(l2.substring(13, 19), true);
+document.getElementById('gender').value = l2.substring(20, 21) === 'F' ? 'F' : 'M';
+document.getElementById('expiryDate').value = fmtDate(l2.substring(21, 27), false);
+document.getElementById('ocrMsg').textContent = '✅ Passaporto letto! Verifica eventuali mancanze a destra e conferma.';
+}
+// CIE TD1 (3 righe da 30)
+else if (lines.length >= 3) {
+const l1 = lines[lines.length - 3].padEnd(30, '<');
+const l2 = lines[lines.length - 2].padEnd(30, '<');
+const l3 = last.padEnd(30, '<');
+document.getElementById('docType').value = 'ID';
+document.getElementById('issuingCountry').value = l1.substring(2, 5).replace(/</g, '');
+document.getElementById('docNumber').value = l1.substring(5, 14).replace(/</g, '');
+document.getElementById('birthDate').value = fmtDate(l2.substring(0, 6), true);
+document.getElementById('gender').value = l2.substring(7, 8) === 'F' ? 'F' : 'M';
+document.getElementById('expiryDate').value = fmtDate(l2.substring(8, 14), false);
+document.getElementById('nationality').value = l2.substring(15, 18).replace(/</g, '');
+const names = l3.split('<<');
+document.getElementById('lastName').value = (names || '').replace(/</g, ' ').trim();
+document.getElementById('firstName').value = (names || '').replace(/</g, ' ').trim();
+document.getElementById('ocrMsg').textContent = '✅ Carta d'Identità (CIE) letta! Verifica eventuali mancanze a destra e conferma.';
+}
+}
+function fmtDate(yymmdd, isBirth) {
+if (!/^\d{6}$/.test(yymmdd)) return '';
+const yy = parseInt(yymmdd.substring(0, 2), 10);
+const curYY = new Date().getFullYear() % 100;
+const century = isBirth ? (yy > curYY ? '19' : '20') : '20';
+return ${century}${yymmdd.substring(0, 2)}-${yymmdd.substring(2, 4)}-${yymmdd.substring(4, 6)};
+}
+// 3. GESTIONE LISTA & EXPORT EXCEL PROTEL
+function getGuests() { return JSON.parse(localStorage.getItem(getStoreKey()) || '[]'); }
+function setGuests(arr) { localStorage.setItem(getStoreKey(), JSON.stringify(arr)); renderTable(); }
+function addGuestToTable() {
+const lastName = document.getElementById('lastName').value.trim().toUpperCase();
+const firstName = document.getElementById('firstName').value.trim().toUpperCase();
+if (!lastName || !firstName) {
+alert('Inserisci almeno Cognome e Nome.');
+return;
+}
+const g = {
+Room: document.getElementById('roomNumber').value.trim(),
+LastName: lastName,
+FirstName: firstName,
+Gender: document.getElementById('gender').value,
+DateOfBirth: document.getElementById('birthDate').value,
+Nationality: document.getElementById('nationality').value.trim().toUpperCase(),
+IssuingCountry: document.getElementById('issuingCountry').value.trim().toUpperCase(),
+DocType: document.getElementById('docType').value,
+DocNumber: document.getElementById('docNumber').value.trim().toUpperCase(),
+DocExpiry: document.getElementById('expiryDate').value,
+Arrival: document.getElementById('arrivalDate').value,
+Departure: document.getElementById('departureDate').value,
+Terminal: termSel.value
+};
+const list = getGuests();
+list.push(g);
+setGuests(list);
+['lastName', 'firstName', 'docNumber', 'birthDate', 'nationality', 'issuingCountry', 'expiryDate', 'mrzBox'].forEach(id => {
+document.getElementById(id).value = '';
+});
+document.getElementById('ocrMsg').textContent = '✅ Ospite aggiunto! In attesa della prossima foto dal Samsung...';
+}
+function delRow(i) {
+const list = getGuests();
+list.splice(i, 1);
+setGuests(list);
+}
+function clearTable() {
+if (confirm('Svuotare tutta la lista di ' + termSel.value + '?')) setGuests([]);
+}
+function renderTable() {
+const list = getGuests();
+document.getElementById('guestCount').textContent = list.length;
+const tb = document.getElementById('tableBody');
+tb.innerHTML = '';
+list.forEach((g, i) => {
+const tr = document.createElement('tr');
+tr.innerHTML = `
+${g.Room || '-'}
+${g.LastName}
+${g.FirstName}
+${g.Gender}
+${g.DateOfBirth}
+${g.Nationality}
+${g.DocType}
+${g.DocNumber}
+${g.DocExpiry}
+${g.Arrival}
+${g.Departure}
+Elimina
+`;
+tb.appendChild(tr);
+});
+}
+function exportProtelExcel() {
+const list = getGuests();
+if (!list.length) {
+alert('La lista è vuota.');
+return;
+}
+const rows = list.map(g => ({
+'Room': g.Room,
+'Last Name': g.LastName,
+'First Name': g.FirstName,
+'Gender': g.Gender,
+'Date of Birth': g.DateOfBirth,
+'Nationality': g.Nationality,
+'ID Type': g.DocType,
+'ID Number': g.DocNumber,
+'Issuing Country': g.IssuingCountry,
+'ID Expiry': g.DocExpiry,
+'Arrival': g.Arrival,
+'Departure': g.Departure,
+'Terminal': g.Terminal
+}));
+const ws = XLSX.utils.json_to_sheet(rows);
+const wb = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb, ws, 'RoomingList');
+const dateStr = new Date().toISOString().slice(0, 10);
+XLSX.writeFile(wb, HotelConcord_protel_${termSel.value}_${dateStr}.xlsx);
+}
+initPeer();
