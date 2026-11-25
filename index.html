@@ -45,11 +45,11 @@
 
   <div class="header">
     <h1>HOTEL CONCORD TORINO</h1>
-    <p>Acquisizione Documenti — Solo Fotocamera</p>
+    <p>Fase 1 — Acquisizione Fotocamera</p>
   </div>
 
   <div class="box">
-    <label class="lbl" for="termSelect">1. Seleziona Terminale PC</label>
+    <label class="lbl" for="termSelect">Seleziona Terminale PC</label>
     <select id="termSelect" onchange="saveTerm()">
       <option value="T1">TERMINALE 1</option>
       <option value="T2">TERMINALE 2</option>
@@ -64,7 +64,7 @@
   </div>
 
   <div class="footer">
-    Nessun dato viene salvato sul telefono.<br>La foto viene inviata istantaneamente al PC selezionato.
+    Elaborazione OCR e compilazione modulo avvengono in automatico sul PC.
   </div>
 
 <script>
@@ -82,7 +82,6 @@
     el.style.color = color;
   }
 
-  // Ridimensiona la foto sul Samsung prima dell'invio (veloce e nitida per OCR su PC)
   function compressImage(file) {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(file);
@@ -109,13 +108,13 @@
   }
 
   document.getElementById('camInput').addEventListener('change', async function(e) {
-    const file = e.target.files && e.target.files;
+    const file = e.target.files && e.target.files[0];
     if (!file) return;
 
     const targetTerm = termSelect.value;
     const targetPeerId = 'hotel-concord-torino-' + targetTerm.toLowerCase();
 
-    setMsg('⏳ Invio foto a ' + targetTerm + ' in corso...', '#fde047');
+    setMsg('⏳ Invio scatto a ' + targetTerm + '...', '#fde047');
 
     try {
       const dataUrl = await compressImage(file);
@@ -126,16 +125,16 @@
         const conn = peer.connect(targetPeerId, { reliable: true });
         conn.on('open', () => {
           conn.send({ type: 'MRZ_PHOTO', image: dataUrl, terminal: targetTerm });
-          setMsg('✅ Foto inviata a ' + targetTerm + '! Pronto per il prossimo ospite.', '#4ade80');
+          setMsg('✅ Inviato a ' + targetTerm + '! Pronto per il prossimo scatto.', '#4ade80');
           setTimeout(() => peer.destroy(), 1500);
         });
         conn.on('error', () => {
-          setMsg('❌ PC ' + targetTerm + ' non trovato. Apri pc.html sul computer!', '#f87171');
+          setMsg('❌ PC ' + targetTerm + ' non raggiungibile. Apri pc.html sul PC!', '#f87171');
         });
       });
 
       peer.on('error', (err) => {
-        setMsg('❌ Errore connessione (' + err.type + '). Verifica che pc.html sia aperto sul PC.', '#f87171');
+        setMsg('❌ Errore rete (' + err.type + '). Verifica pc.html sul PC.', '#f87171');
       });
     } catch (err) {
       setMsg('❌ Errore lettura foto.', '#f87171');
