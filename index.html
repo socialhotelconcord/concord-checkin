@@ -8,40 +8,68 @@
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body {
-      margin: 0; padding: 20px; background: #0f2537; color: #fff;
+      margin: 0; padding: 14px; background: #0f2537; color: #fff;
       display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh;
     }
     .header { text-align: center; }
-    .header h1 { font-size: 18px; margin: 0; letter-spacing: 1px; color: #c59b27; }
-    .header p { font-size: 12px; color: #cbd5e1; margin: 4px 0 10px 0; }
+    .header h1 { font-size: 16px; margin: 0; letter-spacing: 1px; color: #c59b27; }
     .pc-link {
-      display: inline-block; background: rgba(255,255,255,0.12); color: #fde047;
-      text-decoration: none; padding: 8px 14px; border-radius: 8px; font-size: 12px;
+      display: inline-block; margin-top: 6px; background: rgba(255,255,255,0.12); color: #fde047;
+      text-decoration: none; padding: 6px 12px; border-radius: 8px; font-size: 11px;
       font-weight: 700; border: 1px solid rgba(253,224,71,0.4);
     }
 
     .box {
-      background: #1e3a5f; padding: 24px 18px; border-radius: 16px;
-      text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      background: #1e3a5f; padding: 16px; border-radius: 16px;
+      text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.3); margin: 10px 0;
     }
-    label.lbl { display: block; font-size: 12px; text-transform: uppercase; color: #cbd5e1; margin-bottom: 8px; font-weight: 700; }
+    .row-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .row-top label { font-size: 12px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; }
     select {
-      width: 100%; padding: 14px; font-size: 18px; font-weight: 800;
-      border-radius: 10px; border: 2px solid #c59b27; background: #fff; color: #0f2537;
-      margin-bottom: 24px; text-align: center;
+      flex: 1; padding: 10px; font-size: 16px; font-weight: 800;
+      border-radius: 10px; border: 2px solid #c59b27; background: #fff; color: #0f2537; text-align: center;
     }
+
+    /* MIRINO CON DELIMITAZIONE RIGHE MRZ */
+    .viewfinder-wrap {
+      position: relative; width: 100%; height: 230px; background: #000;
+      border-radius: 12px; overflow: hidden; margin-bottom: 12px; border: 2px solid #334155;
+    }
+    video { width: 100%; height: 100%; object-fit: cover; }
+    .mrz-guide {
+      position: absolute; left: 5%; right: 5%; top: 50%; transform: translateY(-50%);
+      height: 86px; border: 3px solid #c59b27; border-radius: 8px;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+      display: flex; flex-direction: column; justify-content: space-between; padding: 4px 8px;
+      pointer-events: none;
+    }
+    .mrz-guide span {
+      font-size: 10px; font-weight: 800; color: #fde047; text-transform: uppercase;
+      letter-spacing: 0.5px; text-shadow: 0 1px 2px #000;
+    }
+    .mrz-lines-hint {
+      font-family: monospace; font-size: 12px; color: rgba(255,255,255,0.65);
+      letter-spacing: 2px; text-align: center;
+    }
+
     .btn-cam {
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      width: 100%; padding: 24px 16px; background: #c59b27; color: #000;
-      font-size: 18px; font-weight: 900; border-radius: 14px; border: none;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 18px 14px; background: #c59b27; color: #000;
+      font-size: 17px; font-weight: 900; border-radius: 12px; border: none;
       cursor: pointer; box-shadow: 0 6px 16px rgba(197,155,39,0.4);
     }
     .btn-cam:active { transform: scale(0.97); }
+
+    .btn-native {
+      display: inline-block; margin-top: 10px; padding: 10px 14px;
+      background: rgba(255,255,255,0.1); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%;
+    }
     input[type="file"] { display: none; }
 
     #msg {
-      margin-top: 20px; padding: 12px; border-radius: 10px; font-size: 14px;
-      font-weight: 700; background: rgba(255,255,255,0.1); color: #e2e8f0;
+      margin-top: 12px; padding: 10px; border-radius: 10px; font-size: 13px;
+      font-weight: 700; background: rgba(0,0,0,0.25); color: #e2e8f0;
     }
     .footer { text-align: center; font-size: 11px; color: #94a3b8; }
   </style>
@@ -50,23 +78,37 @@
 
   <div class="header">
     <h1>HOTEL CONCORD TORINO</h1>
-    <p>Fase 1 — Acquisizione Fotocamera</p>
-    <a href="pc.html" class="pc-link">🖥️ SEI SUL PC RECEPTION? CLICCA QUI PER APRIRE IL MODULO</a>
+    <a href="pc.html" class="pc-link">🖥️ SEI SUL PC RECEPTION? APRI IL MODULO DATI</a>
   </div>
 
   <div class="box">
-    <label class="lbl" for="termSelect">Seleziona Terminale PC</label>
-    <select id="termSelect" onchange="saveTerm()">
-      <option value="T1">TERMINALE 1</option>
-      <option value="T2">TERMINALE 2</option>
-    </select>
+    <div class="row-top">
+      <label for="termSelect">Invia a:</label>
+      <select id="termSelect" onchange="saveTerm()">
+        <option value="T1">TERMINALE 1</option>
+        <option value="T2">TERMINALE 2</option>
+      </select>
+    </div>
 
-    <label for="camInput" class="btn-cam">
-      📷 APRI FOTOCAMERA
+    <!-- MIRINO LIVE CON DELIMITAZIONE MRZ -->
+    <div class="viewfinder-wrap" id="vfWrap">
+      <video id="videoFeed" autoplay playsinline muted></video>
+      <div class="mrz-guide">
+        <span>ALLINEA QUI LE 2/3 RIGHE CON &lt;&lt;&lt;</span>
+        <div class="mrz-lines-hint">IDITA&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br>ROSSI&lt;&lt;MARIO&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</div>
+      </div>
+    </div>
+
+    <button type="button" class="btn-cam" id="btnSnap" onclick="captureFromMirino()">
+      📸 SCATTA E INVIA AL PC
+    </button>
+
+    <label for="camInput" class="btn-native">
+      📷 Oppure usa Fotocamera Nativa Samsung
     </label>
     <input type="file" id="camInput" accept="image/*" capture="environment">
 
-    <div id="msg">Pronto. Inquadra le righe con &lt;&lt;&lt;</div>
+    <div id="msg">Avvio mirino fotocamera...</div>
   </div>
 
   <div class="footer">
@@ -76,6 +118,8 @@
 <script>
   const termSelect = document.getElementById('termSelect');
   termSelect.value = localStorage.getItem('concord_mobile_term') || 'T1';
+  const video = document.getElementById('videoFeed');
+  let streamActive = false;
 
   function saveTerm() {
     localStorage.setItem('concord_mobile_term', termSelect.value);
@@ -88,7 +132,57 @@
     el.style.color = color;
   }
 
-  function compressImage(file) {
+  // Avvia il mirino con delimitazione MRZ
+  async function startCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      document.getElementById('vfWrap').style.display = 'none';
+      document.getElementById('btnSnap').style.display = 'none';
+      setMsg('Usa il pulsante Fotocamera Nativa Samsung qui sopra.', '#fde047');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false
+      });
+      video.srcObject = stream;
+      streamActive = true;
+      setMsg('Inquadra le righe <<< nel riquadro giallo e premi Scatta.', '#e2e8f0');
+    } catch (err) {
+      document.getElementById('vfWrap').style.display = 'none';
+      document.getElementById('btnSnap').style.display = 'none';
+      setMsg('Mirino non disponibile: usa il tasto Fotocamera Nativa Samsung.', '#fde047');
+    }
+  }
+
+  // Cattura e ritaglia solo la fascia centrale delimitata dal riquadro giallo
+  function captureFromMirino() {
+    if (!streamActive || !video.videoWidth) {
+      setMsg('Fotocamera non ancora pronta. Attendi 1 secondo o usa Fotocamera Nativa.', '#fde047');
+      return;
+    }
+
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+
+    // Ritaglia la fascia centrale (dove c'è il riquadro giallo MRZ) per massima precisione OCR
+    const cropX = Math.round(vw * 0.04);
+    const cropW = Math.round(vw * 0.92);
+    const cropH = Math.round(vh * 0.42);
+    const cropY = Math.round((vh - cropH) / 2);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1400;
+    canvas.height = Math.round(1400 * (cropH / cropW));
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
+    sendToPC(dataUrl);
+  }
+
+  // Paracadute: Fotocamera Nativa Samsung (CORRETTO files[0])
+  function compressFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = function(event) {
@@ -106,12 +200,12 @@
           canvas.height = h;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', 0.85));
+          resolve(canvas.toDataURL('image/jpeg', 0.88));
         };
         img.onerror = () => reject(new Error('Immagine non valida'));
         img.src = event.target.result;
       };
-      reader.onerror = () => reject(new Error('Errore FileReader'));
+      reader.onerror = () => reject(new Error('Errore lettura file'));
       reader.readAsDataURL(file);
     });
   }
@@ -119,37 +213,44 @@
   document.getElementById('camInput').addEventListener('change', async function(e) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    const file = files;
+    const file = files[0]; // <-- FIX CORRETTO: primo elemento dell'array
 
-    const targetTerm = termSelect.value;
-    const targetPeerId = 'hotel-concord-torino-' + targetTerm.toLowerCase();
-
-    setMsg('⏳ Invio scatto a ' + targetTerm + ' in corso...', '#fde047');
-
+    setMsg('⏳ Elaborazione foto in corso...', '#fde047');
     try {
-      const dataUrl = await compressImage(file);
+      const dataUrl = await compressFile(file);
       e.target.value = '';
-
-      const peer = new Peer();
-      peer.on('open', () => {
-        const conn = peer.connect(targetPeerId, { reliable: true });
-        conn.on('open', () => {
-          conn.send({ type: 'MRZ_PHOTO', image: dataUrl, terminal: targetTerm });
-          setMsg('✅ Foto inviata a ' + targetTerm + '! Pronto per il prossimo scatto.', '#4ade80');
-          setTimeout(() => peer.destroy(), 1500);
-        });
-        conn.on('error', () => {
-          setMsg('❌ PC ' + targetTerm + ' non trovato. Apri il modulo sul PC!', '#f87171');
-        });
-      });
-
-      peer.on('error', (err) => {
-        setMsg('❌ Errore rete (' + err.type + '). Verifica che il PC sia connesso.', '#f87171');
-      });
+      sendToPC(dataUrl);
     } catch (err) {
       setMsg('❌ Errore lettura foto: ' + err.message, '#f87171');
     }
   });
+
+  // Invio diretto al PC Reception via PeerJS
+  function sendToPC(dataUrl) {
+    const targetTerm = termSelect.value;
+    const targetPeerId = 'hotel-concord-torino-' + targetTerm.toLowerCase();
+
+    setMsg('⏳ Invio scatto a ' + targetTerm + '...', '#fde047');
+
+    const peer = new Peer();
+    peer.on('open', () => {
+      const conn = peer.connect(targetPeerId, { reliable: true });
+      conn.on('open', () => {
+        conn.send({ type: 'MRZ_PHOTO', image: dataUrl, terminal: targetTerm });
+        setMsg('✅ Inviato a ' + targetTerm + '! Pronto per il prossimo ospite.', '#4ade80');
+        setTimeout(() => peer.destroy(), 1500);
+      });
+      conn.on('error', () => {
+        setMsg('❌ PC ' + targetTerm + ' non trovato. Verifica che pc.html sia aperto sul PC!', '#f87171');
+      });
+    });
+
+    peer.on('error', (err) => {
+      setMsg('❌ Errore connessione (' + err.type + ').', '#f87171');
+    });
+  }
+
+  startCamera();
 </script>
 </body>
 </html>
