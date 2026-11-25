@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Scanner Concord — Samsung A16</title>
-  <script src="https://unpkg.com"></script>
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body {
@@ -12,16 +11,12 @@
       display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh;
     }
     .header { text-align: center; }
-    .header h1 { font-size: 16px; margin: 0; letter-spacing: 1px; color: #c59b27; }
-    .pc-link {
-      display: inline-block; margin-top: 6px; background: rgba(255,255,255,0.12); color: #fde047;
-      text-decoration: none; padding: 6px 12px; border-radius: 8px; font-size: 11px;
-      font-weight: 700; border: 1px solid rgba(253,224,71,0.4);
-    }
+    .header h1 { font-size: 17px; margin: 0; letter-spacing: 1px; color: #c59b27; }
+    .header p { font-size: 11px; color: #cbd5e1; margin: 3px 0 0 0; }
 
     .box {
       background: #1e3a5f; padding: 16px; border-radius: 16px;
-      text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.3); margin: 10px 0;
+      text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.3); margin: 8px 0;
     }
     .row-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
     .row-top label { font-size: 12px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; }
@@ -32,24 +27,29 @@
 
     /* MIRINO CON DELIMITAZIONE RIGHE MRZ */
     .viewfinder-wrap {
-      position: relative; width: 100%; height: 230px; background: #000;
-      border-radius: 12px; overflow: hidden; margin-bottom: 12px; border: 2px solid #334155;
+      position: relative; width: 100%; height: 225px; background: #091520;
+      border-radius: 12px; overflow: hidden; margin-bottom: 12px; border: 2px solid #475569;
     }
     video { width: 100%; height: 100%; object-fit: cover; }
     .mrz-guide {
-      position: absolute; left: 5%; right: 5%; top: 50%; transform: translateY(-50%);
-      height: 86px; border: 3px solid #c59b27; border-radius: 8px;
+      position: absolute; left: 4%; right: 4%; top: 50%; transform: translateY(-50%);
+      height: 88px; border: 3px solid #c59b27; border-radius: 8px;
       box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
       display: flex; flex-direction: column; justify-content: space-between; padding: 4px 8px;
-      pointer-events: none;
+      pointer-events: none; z-index: 2;
     }
     .mrz-guide span {
       font-size: 10px; font-weight: 800; color: #fde047; text-transform: uppercase;
       letter-spacing: 0.5px; text-shadow: 0 1px 2px #000;
     }
     .mrz-lines-hint {
-      font-family: monospace; font-size: 12px; color: rgba(255,255,255,0.65);
+      font-family: monospace; font-size: 12px; color: rgba(255,255,255,0.75);
       letter-spacing: 2px; text-align: center;
+    }
+    .btn-activate-cam {
+      position: absolute; z-index: 3; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: #c59b27; color: #000; border: none; padding: 14px 18px; border-radius: 10px;
+      font-weight: 900; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.6);
     }
 
     .btn-cam {
@@ -61,15 +61,15 @@
     .btn-cam:active { transform: scale(0.97); }
 
     .btn-native {
-      display: inline-block; margin-top: 10px; padding: 10px 14px;
-      background: rgba(255,255,255,0.1); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%;
+      display: block; margin-top: 10px; padding: 12px 14px;
+      background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%;
     }
     input[type="file"] { display: none; }
 
     #msg {
       margin-top: 12px; padding: 10px; border-radius: 10px; font-size: 13px;
-      font-weight: 700; background: rgba(0,0,0,0.25); color: #e2e8f0;
+      font-weight: 700; background: rgba(0,0,0,0.3); color: #e2e8f0;
     }
     .footer { text-align: center; font-size: 11px; color: #94a3b8; }
   </style>
@@ -78,7 +78,7 @@
 
   <div class="header">
     <h1>HOTEL CONCORD TORINO</h1>
-    <a href="pc.html" class="pc-link">🖥️ SEI SUL PC RECEPTION? APRI IL MODULO DATI</a>
+    <p>Acquisizione Documenti — Solo Fotocamera</p>
   </div>
 
   <div class="box">
@@ -90,25 +90,28 @@
       </select>
     </div>
 
-    <!-- MIRINO LIVE CON DELIMITAZIONE MRZ -->
+    <!-- MIRINO CON RIQUADRO DELIMITAZIONE 3 RIGHE MRZ -->
     <div class="viewfinder-wrap" id="vfWrap">
       <video id="videoFeed" autoplay playsinline muted></video>
       <div class="mrz-guide">
         <span>ALLINEA QUI LE 2/3 RIGHE CON &lt;&lt;&lt;</span>
         <div class="mrz-lines-hint">IDITA&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br>ROSSI&lt;&lt;MARIO&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</div>
       </div>
+      <button type="button" class="btn-activate-cam" id="btnStartCam" onclick="startCamera()">
+        🎥 TOCCA QUI PER ACCENDERE IL MIRINO
+      </button>
     </div>
 
-    <button type="button" class="btn-cam" id="btnSnap" onclick="captureFromMirino()">
+    <button type="button" class="btn-cam" id="btnSnap" style="display:none;" onclick="captureFromMirino()">
       📸 SCATTA E INVIA AL PC
     </button>
 
     <label for="camInput" class="btn-native">
-      📷 Oppure usa Fotocamera Nativa Samsung
+      📷 Oppure scatta con Fotocamera Samsung
     </label>
     <input type="file" id="camInput" accept="image/*" capture="environment">
 
-    <div id="msg">Avvio mirino fotocamera...</div>
+    <div id="msg">Tocca il tasto giallo nel riquadro per accendere il mirino.</div>
   </div>
 
   <div class="footer">
@@ -132,12 +135,10 @@
     el.style.color = color;
   }
 
-  // Avvia il mirino con delimitazione MRZ
+  // Avvia il mirino al tocco dell'utente
   async function startCamera() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      document.getElementById('vfWrap').style.display = 'none';
-      document.getElementById('btnSnap').style.display = 'none';
-      setMsg('Usa il pulsante Fotocamera Nativa Samsung qui sopra.', '#fde047');
+      setMsg('Usa il pulsante Fotocamera Samsung qui sotto.', '#fde047');
       return;
     }
     try {
@@ -147,48 +148,43 @@
       });
       video.srcObject = stream;
       streamActive = true;
-      setMsg('Inquadra le righe <<< nel riquadro giallo e premi Scatta.', '#e2e8f0');
+      document.getElementById('btnStartCam').style.display = 'none';
+      document.getElementById('btnSnap').style.display = 'flex';
+      setMsg('Allinea le righe <<< dentro il rettangolo oro e premi SCATTA.', '#4ade80');
     } catch (err) {
-      document.getElementById('vfWrap').style.display = 'none';
-      document.getElementById('btnSnap').style.display = 'none';
-      setMsg('Mirino non disponibile: usa il tasto Fotocamera Nativa Samsung.', '#fde047');
+      setMsg('Apri questa pagina direttamente in Google Chrome (non dentro WhatsApp) oppure usa Fotocamera Samsung.', '#f87171');
     }
   }
 
-  // Cattura e ritaglia solo la fascia centrale delimitata dal riquadro giallo
+  // Cattura dal mirino e ridimensiona per invio istantaneo
   function captureFromMirino() {
-    if (!streamActive || !video.videoWidth) {
-      setMsg('Fotocamera non ancora pronta. Attendi 1 secondo o usa Fotocamera Nativa.', '#fde047');
-      return;
-    }
+    if (!streamActive || !video.videoWidth) return;
 
     const vw = video.videoWidth;
     const vh = video.videoHeight;
-
-    // Ritaglia la fascia centrale (dove c'è il riquadro giallo MRZ) per massima precisione OCR
     const cropX = Math.round(vw * 0.04);
     const cropW = Math.round(vw * 0.92);
     const cropH = Math.round(vh * 0.42);
     const cropY = Math.round((vh - cropH) / 2);
 
     const canvas = document.createElement('canvas');
-    canvas.width = 1400;
-    canvas.height = Math.round(1400 * (cropH / cropW));
+    canvas.width = 1100;
+    canvas.height = Math.round(1100 * (cropH / cropW));
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
     sendToPC(dataUrl);
   }
 
-  // Paracadute: Fotocamera Nativa Samsung (CORRETTO files[0])
+  // Fotocamera Nativa Samsung
   function compressFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = function(event) {
         const img = new Image();
         img.onload = function() {
-          const MAX_W = 1400;
+          const MAX_W = 1100;
           let w = img.width;
           let h = img.height;
           if (w > MAX_W) {
@@ -200,7 +196,7 @@
           canvas.height = h;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', 0.88));
+          resolve(canvas.toDataURL('image/jpeg', 0.80));
         };
         img.onerror = () => reject(new Error('Immagine non valida'));
         img.src = event.target.result;
@@ -211,11 +207,10 @@
   }
 
   document.getElementById('camInput').addEventListener('change', async function(e) {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    const file = files[0]; // <-- FIX CORRETTO: primo elemento dell'array
+    const file = e.target.files ? e.target.files : null;
+    if (!file) return;
 
-    setMsg('⏳ Elaborazione foto in corso...', '#fde047');
+    setMsg('⏳ Preparazione foto...', '#fde047');
     try {
       const dataUrl = await compressFile(file);
       e.target.value = '';
@@ -225,32 +220,28 @@
     }
   });
 
-  // Invio diretto al PC Reception via PeerJS
-  function sendToPC(dataUrl) {
+  // INVIO NATIVO VIA HTTP (ZERO LIBRERIE ESTERNE)
+  async function sendToPC(dataUrl) {
     const targetTerm = termSelect.value;
-    const targetPeerId = 'hotel-concord-torino-' + targetTerm.toLowerCase();
+    const topic = 'hotel-concord-torino-mrz-' + targetTerm.toLowerCase();
 
-    setMsg('⏳ Invio scatto a ' + targetTerm + '...', '#fde047');
+    setMsg('⏳ Invio foto al PC (' + targetTerm + ')...', '#fde047');
 
-    const peer = new Peer();
-    peer.on('open', () => {
-      const conn = peer.connect(targetPeerId, { reliable: true });
-      conn.on('open', () => {
-        conn.send({ type: 'MRZ_PHOTO', image: dataUrl, terminal: targetTerm });
-        setMsg('✅ Inviato a ' + targetTerm + '! Pronto per il prossimo ospite.', '#4ade80');
-        setTimeout(() => peer.destroy(), 1500);
+    try {
+      const response = await fetch('https://ntfy.sh' + topic, {
+        method: 'POST',
+        body: dataUrl
       });
-      conn.on('error', () => {
-        setMsg('❌ PC ' + targetTerm + ' non trovato. Verifica che pc.html sia aperto sul PC!', '#f87171');
-      });
-    });
 
-    peer.on('error', (err) => {
-      setMsg('❌ Errore connessione (' + err.type + ').', '#f87171');
-    });
+      if (response.ok) {
+        setMsg('✅ Foto inviata a ' + targetTerm + '! Pronto per il prossimo ospite.', '#4ade80');
+      } else {
+        setMsg('❌ Errore invio (' + response.status + '). Riprova.', '#f87171');
+      }
+    } catch (err) {
+      setMsg('❌ Nessuna connessione internet sul telefono.', '#f87171');
+    }
   }
-
-  startCamera();
 </script>
 </body>
 </html>
