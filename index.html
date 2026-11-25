@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hotel Concord - Check-in Live protel</title>
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        :root { --primary: #1a365d; --accent: #c59b27; --bg: #f1f5f9; --text: #1e293b; }
+        * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+        body { margin: 0; padding: 10px; background: var(--bg); color: var(--text); }
+        header {
+            background: var(--primary); color: #fff; padding: 12px; border-radius: 10px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+        }
+        header h1 { font-size: 15px; margin: 0; }
+        header small { color: var(--accent); font-size: 11px; }
+        select.term { background: var(--accent); color: #fff; border: none; padding: 7px; border-radius: 6px; font-weight: bold; }
+        .card { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        h2 { font-size: 13px; margin: 0 0 8px; color: var(--primary); border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
+        .btn {
+            width: 100%; padding: 13px; border: none; border-radius: 8px; font-size: 15px;
+            font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-gold { background: var(--accent); color: #fff; }
+        .btn-blue { background: var(--primary); color: #fff; margin-top: 10px; }
+        .btn-green { background: #15803d; color: #fff; }
+        .btn-stop { background: #dc2626; color: #fff; margin-top: 8px; padding: 10px; font-size: 13px; }
+        .btn-gray { background: #e2e8f0; color: var(--text); font-size: 12px; padding: 8px; margin-top: 6px; }
+        
+        /* Mirino Fotocamera Live Compatto */
+        #camContainer { display: none; position: relative; margin-top: 8px; border-radius: 8px; overflow: hidden; background: #000; }
+        video { width: 100%; height: 190px; object-fit: cover; display: block; }
+        .guide-box {
+            position: absolute; top: 50%; left: 5%; width: 90%; height: 68px;
+            transform: translateY(-50%); border: 2px solid #22c55e; border-radius: 6px;
+            box-shadow: 0 0 0 999px rgba(0,0,0,0.55); pointer-events: none;
+        }
+        .guide-label {
+            position: absolute; top: -20px; left: 0; width: 100%; text-align: center;
+            color: #22c55e; font-size: 11px; font-weight: bold; text-shadow: 1px 1px 2px #000;
+        }
+        #status { display: none; padding: 8px; border-radius: 6px; font-size: 12px; margin-top: 8px; font-weight: 600; text-align: center; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+        label { font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 2px; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+        .del { background: #dc2626; color: #fff; border: none; border-radius: 5px; padding: 4px 8px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>HOTEL CONCORD TORINO</h1>
+        <small>Check-in Live &rarr; protel Cloud PMS</small>
+    </div>
+    <select id="termSel" class="term" onchange="changeTerm()">
+        <option value="T1">Terminale 1</option>
+        <option value="T2">Terminale 2</option>
+    </select>
+</header>
+
+<div class="card">
+    <h2>1. Scansione Rapida CIE / Passaporto</h2>
+    <button type="button" id="btnStartCam" class="btn btn-gold" onclick="startScanner()">📷 APRI MIRINO DOCUMENTO</button>
+    
+    <div id="camContainer">
+        <video id="video" playsinline autoplay muted></video>
+        <div class="guide-box"><div class="guide-label">ALLINEA QUI LE RIGHE CON &lt;&lt;&lt;</div></div>
+        <button type="button" class="btn btn-stop" onclick="stopScanner()">✕ Chiudi Mirino</button>
+    </div>
+    <div id="status"></div>
+</div>
+
+<div class="card">
+    <h2>2. Dati Ospite (Verifica)</h2>
+    <div class="grid">
+        <div><label>Camera *</label><input type="text" id="room" placeholder="Es. 204"></div>
+        <div><label>Documento</label>
+            <select id="docType"><option value="ID">CIE (Carta Id.)</option><option value="P">Passaporto</option></select>
+        </div>
+        <div><label>Cognome *</label><input type="text" id="lastName"></div>
+        <div><label>Nome *</label><input type="text" id="firstName"></div>
+        <div><label>Data Nascita *</label><input type="text" id="dob" placeholder="GG/MM/AAAA"></div>
+        <div><label>Sesso</label><select id="sex"><option value="M">M</option><option value="F">F</option></select></div>
+        <div><label>Nazionalità *</label><input type="text" id="nat" placeholder="ITA"></div>
+        <div><label>N. Documento *</label><input type="text" id="docNum"></div>
+        <div><label>Scadenza Doc.</label><input type="text" id="exp" placeholder="GG/MM/AAAA"></div>
+        <div><label>Paese Rilascio</label><input type="text" id="iss" placeholder="ITA"></div>
+        <div><label>Arrivo</label><input type="date" id="arr"></div>
+        <div><label>Partenza</label><input type="date" id="dep"></div>
+    </div>
+    <button type="button" class="btn btn-blue" onclick="addGuest()">➕ AGGIUNGI ALLA ROOMING LIST</button>
+</div>
+
+<div class="card">
+    <h2>3. Lista Acquisiti (<span id="count">0</span>)</h2>
+    <div id="list"></div>
+    <button type="button" class="btn btn-green" style="margin-top:10px;" onclick="exportExcel()">📥 SCARICA EXCEL PROTEL (.xlsx)</button>
+    <button type="button" class="btn btn-gray" onclick="clearList()">🗑️ Svuota Lista</button>
+</div>
+
+<canvas id="cropCanvas" style="display:none;"></canvas>
+
+<script>
+    let term = localStorage.getItem('hc_term') || 'T1';
+    document.getElementById('termSel').value = term;
+    let guests = JSON.parse(localStorage.getItem('hc_guests_' + term) || '[]');
+    let stream = null, scanTimer = null, isScanning = false, worker = null;
+
+    window.onload = async () => {
+        const d1 = new Date(), d2 = new Date();
+        d2.setDate(d1.getDate() + 1);
+        document.getElementById('arr').value = d1.toISOString().split('T');
+        document.getElementById('dep').value = d2.toISOString().split('T');
+        render();
+        // Pre-carica il motore OCR leggero in background
+        worker = await Tesseract.createWorker('eng');
+        await worker.setParameters({ tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<' });
+    };
+
+    function changeTerm() {
+        term = document.getElementById('termSel').value;
+        localStorage.setItem('hc_term', term);
+        guests = JSON.parse(localStorage.getItem('hc_guests_' + term) || '[]');
+        render();
+    }
+
+    function notify(txt, bg = '#dcfce7', col = '#166534') {
+        const m = document.getElementById('status');
+        m.style.display = 'block'; m.style.background = bg; m.style.color = col; m.innerText = txt;
+    }
+
+    async function startScanner() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+            });
+            const video = document.getElementById('video');
+            video.srcObject = stream;
+            document.getElementById('camContainer').style.display = 'block';
+            document.getElementById('btnStartCam').style.display = 'none';
+            notify('🔍 Inquadra le righe <<< dentro il rettangolo verde...', '#e0f2fe', '#0369a1');
+            
+            isScanning = true;
+            scanTimer = setInterval(captureAndRead, 1100);
+        } catch (err) {
+            notify('⚠️ Fotocamera bloccata da Chrome: attiva il flag Chrome come da guida!', '#fee2e2', '#991b1b');
+        }
+    }
+
+    function stopScanner() {
+        isScanning = false;
+        clearInterval(scanTimer);
+        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+        document.getElementById('camContainer').style.display = 'none';
+        document.getElementById('btnStartCam').style.display = 'flex';
+    }
+
+    async function captureAndRead() {
+        if (!isScanning || !worker) return;
+        const video = document.getElementById('video');
+        if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
+        // Ritaglia SOLO la striscia centrale (pochissimi KB, zero carico dati!)
+        const canvas = document.getElementById('cropCanvas');
+        const cw = 900, ch = 220;
+        canvas.width = cw; canvas.height = ch;
+        const ctx = canvas.getContext('2d');
+        
+        const sy = video.videoHeight * 0.32;
+        const sh = video.videoHeight * 0.36;
+        ctx.drawImage(video, 0, sy, video.videoWidth, sh, 0, 0, cw, ch);
+
+        // Alto contrasto istantaneo
+        const imgData = ctx.getImageData(0, 0, cw, ch);
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+            let g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+            g = g < 125 ? 0 : 255; // Binarizzazione netta bianco/nero
+            d[i] = d[i+1] = d[i+2] = g;
+        }
+        ctx.putImageData(imgData, 0, 0);
+
+        const { data: { text } } = await worker.recognize(canvas);
+        if (parseMRZ(text)) {
+            stopScanner();
+            notify('✅ Documento acquisito! Verifica i dati qui sotto.');
+        }
+    }
+
+    function parseMRZ(raw) {
+        const lines = raw.toUpperCase().split(/\r?\n/)
+.map(l => l.replace(/\s+/g, '').replace(/[^A-Z0-9<]/g, ''))
+.filter(l => l.length >= 28 && l.includes('<'));
+if (lines.length < 2) return false;
+for (let i = 0; i < lines.length - 1; i++) {
+if (lines[i].length >= 40 && lines[i+1].length >= 40 && lines[i].startsWith('P')) {
+const l1 = lines[i].padEnd(44, '<'), l2 = lines[i+1].padEnd(44, '<');
+const names = l1.substring(5).split('<<');
+setFields('P', l1.substring(2,5), names, names, l2.substring(0,9), l2.substring(10,13), l2.substring(13,19), l2.substring(20,21), l2.substring(21,27));
+return true;
+}
+}
+for (let i = 0; i < lines.length - 2; i++) {
+if (lines[i].length >= 28 && lines[i+1].length >= 28 && lines[i+2].length >= 28) {
+const l1 = lines[i].padEnd(30, '<'), l2 = lines[i+1].padEnd(30, '<'), l3 = lines[i+2].padEnd(30, '<');
+if (/^[ICA]/.test(l1)) {
+const names = l3.split('<<');
+setFields('ID', l1.substring(2,5), names, names, l1.substring(5,14), l2.substring(15,18), l2.substring(0,6), l2.substring(7,8), l2.substring(8,14));
+return true;
+}
+}
+}
+return false;
+}
+function setFields(type, iss, ln, fn, num, nat, dob, sex, exp) {
+document.getElementById('docType').value = type;
+document.getElementById('iss').value = iss.replace(/</g, '');
+document.getElementById('lastName').value = (ln || '').replace(/</g, ' ').trim();
+document.getElementById('firstName').value = (fn || '').replace(/</g, ' ').trim();
+document.getElementById('docNum').value = num.replace(/</g, '');
+document.getElementById('nat').value = nat.replace(/</g, '');
+document.getElementById('dob').value = fmtDate(dob, false);
+document.getElementById('sex').value = (sex === 'F') ? 'F' : 'M';
+document.getElementById('exp').value = fmtDate(exp, true);
+}
+function fmtDate(s, isExp) {
+if (!/^\d{6}$/.test(s)) return '';
+const yy = parseInt(s.substring(0,2), 10), cur = new Date().getFullYear() % 100;
+const yyyy = isExp ? (2000 + yy) : (yy > cur ? 1900 + yy : 2000 + yy);
+return ${s.substring(4,6)}/${s.substring(2,4)}/${yyyy};
+}
+function addGuest() {
+const ln = document.getElementById('lastName').value.trim().toUpperCase();
+const fn = document.getElementById('firstName').value.trim().toUpperCase();
+if (!ln || !fn) return alert('Inserisci Cognome e Nome.');
+guests.push({
+"Room": document.getElementById('room').value.trim(),
+"Last Name": ln, "First Name": fn,
+"Gender": document.getElementById('sex').value,
+"Date of Birth": document.getElementById('dob').value.trim(),
+"Nationality": document.getElementById('nat').value.trim().toUpperCase(),
+"ID Type": document.getElementById('docType').value,
+"ID Number": document.getElementById('docNum').value.trim().toUpperCase(),
+"ID Expiry Date": document.getElementById('exp').value.trim(),
+"Issuing Country": document.getElementById('iss').value.trim().toUpperCase(),
+"Arrival": document.getElementById('arr').value.split('-').reverse().join('/'),
+"Departure": document.getElementById('dep').value.split('-').reverse().join('/')
+});
+localStorage.setItem('hc_guests_' + term, JSON.stringify(guests));
+render();
+['lastName','firstName','dob','docNum','exp'].forEach(id => document.getElementById(id).value = '');
+notify(✅ ${ln} ${fn} aggiunto alla lista!);
+}
+function render() {
+document.getElementById('count').innerText = guests.length;
+document.getElementById('list').innerHTML = guests.length ? guests.map((g, i) =>  <div class="item"> <div><b>${g["Last Name"]} ${g["First Name"]}</b> (Cam. ${g["Room"] || '-'})<br> <small>${g["ID Type"]}: ${g["ID Number"]} | ${g["Nationality"]} | ${g["Date of Birth"]}</small></div> <button class="del" onclick="guests.splice(${i},1);localStorage.setItem('hc_guests_'+term,JSON.stringify(guests));render();">✕</button> </div>).join('') : 'Nessun ospite in lista.';
+}
+function clearList() {
+if (guests.length && confirm('Svuotare la lista di ' + term + '?')) {
+guests = []; localStorage.setItem('hc_guests_' + term, '[]'); render();
+}
+}
+function exportExcel() {
+if (!guests.length) return alert('Lista vuota.');
+const wb = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(guests), "RoomingList");
+XLSX.writeFile(wb, RoomingList_protel_${term}_${new Date().toISOString().split('T')}.xlsx);
+}
