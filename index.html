@@ -11,7 +11,6 @@
       --navy: #0f2537;
       --navy-light: #1e3a5f;
       --gold: #c59b27;
-      --gold-light: #fef9c3;
       --bg: #f1f5f9;
       --card: #ffffff;
       --text: #0f172a;
@@ -23,7 +22,6 @@
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { margin: 0; padding: 12px; background: var(--bg); color: var(--text); padding-bottom: 40px; }
 
-    /* HEADER */
     .topbar {
       background: linear-gradient(135deg, var(--navy), var(--navy-light));
       color: #fff; padding: 14px 16px; border-radius: 12px;
@@ -37,66 +35,58 @@
       padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer;
     }
 
-    /* CARDS */
     .card {
       background: var(--card); border-radius: 12px; padding: 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 14px; border: 1px solid #e2e8f0;
     }
     .card-title {
       font-size: 14px; font-weight: 700; color: var(--navy); text-transform: uppercase;
-      letter-spacing: 0.5px; margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px;
+      letter-spacing: 0.5px; margin: 0 0 12px 0;
     }
 
-    /* ACTION BUTTONS */
     .action-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
     .btn {
       display: flex; align-items: center; justify-content: center; gap: 8px;
       width: 100%; padding: 14px; border-radius: 10px; border: none;
-      font-size: 15px; font-weight: 700; cursor: pointer; transition: transform 0.1s;
+      font-size: 15px; font-weight: 700; cursor: pointer;
     }
-    .btn:active { transform: scale(0.98); }
-    .btn-camera { background: var(--navy); color: #fff; box-shadow: 0 3px 8px rgba(15,37,55,0.2); }
-    .btn-samsung { background: var(--gold); color: #000; box-shadow: 0 3px 8px rgba(197,155,39,0.25); }
+    .btn:active { opacity: 0.85; }
+    .btn-camera { background: var(--navy); color: #fff; }
+    .btn-samsung { background: var(--gold); color: #000; }
     .btn-parse { background: #e2e8f0; color: var(--navy); padding: 10px; font-size: 13px; margin-top: 8px; }
     .btn-save { background: var(--green); color: #fff; margin-top: 14px; font-size: 16px; }
     .btn-excel { background: #0f766e; color: #fff; font-size: 16px; }
 
     input[type="file"] { display: none; }
 
-    /* STATUS & PREVIEW */
     #statusBox {
       display: none; padding: 10px 12px; border-radius: 8px; font-size: 13px;
       font-weight: 600; margin-top: 10px; line-height: 1.4;
     }
     #previewArea { display: none; margin-top: 12px; text-align: center; background: #f8fafc; padding: 8px; border-radius: 8px; border: 1px dashed var(--border); }
-    #previewArea canvas { max-width: 100%; max-height: 150px; border-radius: 6px; }
+    #previewArea canvas { max-width: 100%; max-height: 160px; border-radius: 6px; }
     .contrast-bar { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; }
     .contrast-bar input { flex: 1; }
 
     textarea {
-      width: 100%; height: 74px; margin-top: 8px; padding: 10px; border-radius: 8px;
+      width: 100%; height: 76px; margin-top: 8px; padding: 10px; border-radius: 8px;
       border: 1px solid var(--border); font-family: monospace; font-size: 12px;
       text-transform: uppercase; background: #f8fafc;
     }
 
-    /* FORM */
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .field { display: flex; flex-direction: column; }
-    .field.full { grid-column: span 2; }
     label { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
     input[type="text"], input[type="date"], select.input-std {
       width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;
       font-size: 14px; background: #fff; color: var(--text);
     }
-    input:focus, select:focus { outline: 2px solid var(--gold); border-color: transparent; }
 
-    /* TABLE */
     table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
     th { text-align: left; font-size: 11px; color: var(--muted); border-bottom: 2px solid var(--border); padding: 6px 4px; }
     td { padding: 10px 4px; border-bottom: 1px solid #e2e8f0; }
     .btn-del { background: #fee2e2; color: var(--red); border: none; border-radius: 6px; padding: 6px 10px; font-weight: bold; }
     .btn-clear { background: none; border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 600; }
-
     .tip { font-size: 12px; color: var(--muted); background: #f8fafc; padding: 8px 10px; border-radius: 8px; border-left: 3px solid var(--gold); margin-bottom: 10px; }
   </style>
 </head>
@@ -105,7 +95,7 @@
   <div class="topbar">
     <div>
       <h1>HOTEL CONCORD TORINO</h1>
-      <p>Check-in Rapido &rarr; protel Cloud PMS</p>
+      <p>Check-in Rapido &rarr; protel Cloud PMS (v5.1)</p>
     </div>
     <select id="terminalSelect" class="term-badge" onchange="switchTerminal()">
       <option value="T1">TERMINALE 1</option>
@@ -117,11 +107,10 @@
   <div class="card">
     <div class="card-title">1. Acquisisci Documento (CIE o Passaporto)</div>
     <div class="tip">
-      <strong>Consiglio rapido Samsung:</strong> Usa la fotocamera nativa per inquadrare le righe con <b>&lt;&lt;&lt;</b> (retro CIE o fondo Passaporto), oppure incolla il testo copiato con l'icona <b>"T"</b> della fotocamera Samsung.
+      <strong>Consiglio:</strong> Inquadra in orizzontale <b>solo le righe in basso con &lt;&lt;&lt;</b> (retro CIE o fondo Passaporto).
     </div>
 
     <div class="action-grid">
-      <!-- Apre direttamente la Fotocamera Nativa Android -->
       <label for="nativeCam" class="btn btn-camera">
         📷 SCATTA FOTO MRZ (FOTOCAMERA)
       </label>
@@ -242,18 +231,20 @@
   </div>
 
 <script>
-let loadedImg = null;
-let activeTerm = localStorage.getItem('concord_term_v5') || 'T1';
-document.getElementById('terminalSelect').value = activeTerm;
-// Date di default: Arrivo oggi, Partenza domani
-const today = new Date();
-const tomorrow = new Date(today);
-tomorrow.setDate(tomorrow.getDate() + 1);
-document.getElementById('arrivalDate').valueAsDate = today;
-document.getElementById('departureDate').valueAsDate = tomorrow;
-function storageKey() { return 'concord_guests_v5_' + activeTerm; }
-function switchTerminal() {
-activeTerm = document.getElementById('terminalSelect').value;
+  let loadedImg = null;
+  let activeTerm = localStorage.getItem('concord_term_v5') || 'T1';
+  document.getElementById('terminalSelect').value = activeTerm;
+
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('arrivalDate').valueAsDate = today;
+  document.getElementById('departureDate').valueAsDate = tomorrow;
+
+  function storageKey() { return 'concord_guests_v5_' + activeTerm; }
+
+  function switchTerminal() {
+    activeTerm = document.getElementById('terminalSelect').value;
 localStorage.setItem('concord_term_v5', activeTerm);
 document.getElementById('btnTermText').textContent = activeTerm;
 renderGuestTable();
@@ -270,29 +261,31 @@ box.style.background = '#e0f2fe'; box.style.color = '#075985';
 }
 box.textContent = msg;
 }
-// 1. GESTIONE FOTOCAMERA NATIVA SAMSUNG
+// 1. GESTIONE FOTOCAMERA NATIVA SAMSUNG (FIX files[0] + ObjectURL)
 document.getElementById('nativeCam').addEventListener('change', function(e) {
-const file = e.target.files[0];
+const file = e.target.files && e.target.files[0];
 if (!file) return;
-notify('Elaborazione foto ad alto contrasto...', 'info');
-const reader = new FileReader();
-reader.onload = function(ev) {
+notify('Foto ricevuta! Applicazione filtro alto contrasto...', 'info');
+const objectUrl = URL.createObjectURL(file);
 const img = new Image();
 img.onload = function() {
+URL.revokeObjectURL(objectUrl);
 loadedImg = img;
 redrawCanvas();
 executeOCR();
+e.target.value = '';
 };
-img.src = ev.target.result;
+img.onerror = function() {
+notify('Errore nel caricamento della foto. Riprova.', 'error');
 };
-reader.readAsDataURL(file);
+img.src = objectUrl;
 });
 function redrawCanvas() {
 if (!loadedImg) return;
 const canvas = document.getElementById('ocrCanvas');
 const ctx = canvas.getContext('2d');
 const thresh = parseInt(document.getElementById('thresh').value, 10);
-const maxW = 1600;
+const maxW = 1400;
 let w = loadedImg.width;
 let h = loadedImg.height;
 if (w > maxW) {
@@ -314,7 +307,7 @@ document.getElementById('previewArea').style.display = 'block';
 }
 async function executeOCR() {
 const canvas = document.getElementById('ocrCanvas');
-notify('Lettura caratteri MRZ in corso (attendere 3-5 sec)...', 'info');
+notify('Lettura caratteri MRZ in corso (3-5 secondi)...', 'info');
 try {
 const worker = await Tesseract.createWorker('eng');
 await worker.setParameters({
@@ -326,7 +319,7 @@ await worker.terminate();
 document.getElementById('mrzInput').value = res.data.text.trim();
 decodeMRZ();
 } catch (err) {
-notify('Lettura foto non riuscita. Usa il tasto giallo "Incolla testo copiato da Samsung".', 'error');
+notify('Errore motore OCR: regola il contrasto o usa "Incolla testo copiato da Samsung".', 'error');
 }
 }
 // 2. INCOLLA DA SAMSUNG OCR NATIVO
@@ -334,7 +327,7 @@ async function pasteSamsungText() {
 try {
 const txt = await navigator.clipboard.readText();
 if (!txt || txt.trim().length < 15) {
-notify('Appunti vuoti: inquadra prima il documento con la Fotocamera Samsung, tocca la "T" gialla -> Copia, poi ripremi qui.', 'error');
+notify('Appunti vuoti: copia prima il testo dalla foto Samsung (icona "T"), poi premi qui.', 'error');
 return;
 }
 document.getElementById('mrzInput').value = txt.trim();
@@ -352,14 +345,15 @@ const lines = raw.split(/\r?\n/)
 .map(l => l.replace(/\s+/g, '').replace(/[^A-Z0-9<]/g, ''))
 .filter(l => l.length >= 26 && (l.includes('<') || /^[A-Z0-9]{28,44}$/.test(l)));
 if (lines.length < 2) {
-notify('Righe MRZ non trovate. Assicurati di aver inquadrato o copiato le righe con i simboli <<<.', 'error');
+notify('Righe MRZ non rilevate: regola lo slider Contrasto e premi "Rileggi", oppure inquadra più da vicino le righe <<<.', 'error');
 return;
 }
 try {
+const lastLine = lines[lines.length - 1];
 // Passaporto (TD3: 2 righe da 44 caratteri)
-if (lines.length === 2 || lines[0].length >= 38) {
+if (lines.length === 2 || lastLine.length >= 38) {
 const l1 = lines[lines.length - 2].padEnd(44, '<');
-const l2 = lines[lines.length - 1].padEnd(44, '<');
+const l2 = lastLine.padEnd(44, '<');
 document.getElementById('docType').value = 'P';
 document.getElementById('issuingCountry').value = l1.substring(2, 5).replace(/</g, '');
 const names = l1.substring(5).split('<<');
@@ -370,13 +364,13 @@ document.getElementById('nationality').value = l2.substring(10, 13).replace(/</g
 document.getElementById('birthDate').value = parseDateMRZ(l2.substring(13, 19), true);
 document.getElementById('gender').value = l2.substring(20, 21) === 'F' ? 'F' : 'M';
 document.getElementById('expiryDate').value = parseDateMRZ(l2.substring(21, 27), false);
-notify('Passaporto letto correttamente! Verifica i dati qui sotto.', 'ok');
+notify('Passaporto estratto! Controlla i dati qui sotto e premi Aggiungi.', 'ok');
 }
 // Carta d'Identità Elettronica CIE (TD1: 3 righe da 30 caratteri)
 else if (lines.length >= 3) {
 const l1 = lines[lines.length - 3].padEnd(30, '<');
 const l2 = lines[lines.length - 2].padEnd(30, '<');
-const l3 = lines[lines.length - 1].padEnd(30, '<');
+const l3 = lastLine.padEnd(30, '<');
 document.getElementById('docType').value = 'ID';
 document.getElementById('issuingCountry').value = l1.substring(2, 5).replace(/</g, '');
 document.getElementById('docNumber').value = l1.substring(5, 14).replace(/</g, '');
@@ -387,10 +381,10 @@ document.getElementById('nationality').value = l2.substring(15, 18).replace(/</g
 const names = l3.split('<<');
 document.getElementById('lastName').value = (names[0] || '').replace(/</g, ' ').trim();
 document.getElementById('firstName').value = (names[1] || '').replace(/</g, ' ').trim();
-notify('Carta d'Identità (CIE) letta correttamente! Verifica i dati qui sotto.', 'ok');
+notify('Carta d'Identità (CIE) estratta! Controlla i dati qui sotto e premi Aggiungi.', 'ok');
 }
 } catch (err) {
-notify('Errore nella decodifica. Controlla eventuali caratteri sporchi nel riquadro MRZ.', 'error');
+notify('Errore nella decodifica delle righe MRZ. Verifica il testo nel riquadro.', 'error');
 }
 }
 function parseDateMRZ(yymmdd, isBirth) {
