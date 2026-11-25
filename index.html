@@ -13,7 +13,12 @@
     }
     .header { text-align: center; }
     .header h1 { font-size: 18px; margin: 0; letter-spacing: 1px; color: #c59b27; }
-    .header p { font-size: 12px; color: #cbd5e1; margin: 4px 0 0 0; }
+    .header p { font-size: 12px; color: #cbd5e1; margin: 4px 0 10px 0; }
+    .pc-link {
+      display: inline-block; background: rgba(255,255,255,0.12); color: #fde047;
+      text-decoration: none; padding: 8px 14px; border-radius: 8px; font-size: 12px;
+      font-weight: 700; border: 1px solid rgba(253,224,71,0.4);
+    }
 
     .box {
       background: #1e3a5f; padding: 24px 18px; border-radius: 16px;
@@ -46,6 +51,7 @@
   <div class="header">
     <h1>HOTEL CONCORD TORINO</h1>
     <p>Fase 1 — Acquisizione Fotocamera</p>
+    <a href="pc.html" class="pc-link">🖥️ SEI SUL PC RECEPTION? CLICCA QUI PER APRIRE IL MODULO</a>
   </div>
 
   <div class="box">
@@ -84,37 +90,41 @@
 
   function compressImage(file) {
     return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const MAX_W = 1400;
-        let w = img.width;
-        let h = img.height;
-        if (w > MAX_W) {
-          h = Math.round(h * (MAX_W / w));
-          w = MAX_W;
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          const MAX_W = 1400;
+          let w = img.width;
+          let h = img.height;
+          if (w > MAX_W) {
+            h = Math.round(h * (MAX_W / w));
+            w = MAX_W;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = () => reject(new Error('Immagine non valida'));
+        img.src = event.target.result;
       };
-      img.onerror = reject;
-      img.src = url;
+      reader.onerror = () => reject(new Error('Errore FileReader'));
+      reader.readAsDataURL(file);
     });
   }
 
   document.getElementById('camInput').addEventListener('change', async function(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const file = files;
 
     const targetTerm = termSelect.value;
     const targetPeerId = 'hotel-concord-torino-' + targetTerm.toLowerCase();
 
-    setMsg('⏳ Invio scatto a ' + targetTerm + '...', '#fde047');
+    setMsg('⏳ Invio scatto a ' + targetTerm + ' in corso...', '#fde047');
 
     try {
       const dataUrl = await compressImage(file);
@@ -125,19 +135,19 @@
         const conn = peer.connect(targetPeerId, { reliable: true });
         conn.on('open', () => {
           conn.send({ type: 'MRZ_PHOTO', image: dataUrl, terminal: targetTerm });
-          setMsg('✅ Inviato a ' + targetTerm + '! Pronto per il prossimo scatto.', '#4ade80');
+          setMsg('✅ Foto inviata a ' + targetTerm + '! Pronto per il prossimo scatto.', '#4ade80');
           setTimeout(() => peer.destroy(), 1500);
         });
         conn.on('error', () => {
-          setMsg('❌ PC ' + targetTerm + ' non raggiungibile. Apri pc.html sul PC!', '#f87171');
+          setMsg('❌ PC ' + targetTerm + ' non trovato. Apri il modulo sul PC!', '#f87171');
         });
       });
 
       peer.on('error', (err) => {
-        setMsg('❌ Errore rete (' + err.type + '). Verifica pc.html sul PC.', '#f87171');
+        setMsg('❌ Errore rete (' + err.type + '). Verifica che il PC sia connesso.', '#f87171');
       });
     } catch (err) {
-      setMsg('❌ Errore lettura foto.', '#f87171');
+      setMsg('❌ Errore lettura foto: ' + err.message, '#f87171');
     }
   });
 </script>
