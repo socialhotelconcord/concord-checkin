@@ -218,7 +218,8 @@
 <script>
   const termSel = document.getElementById('pcTerm');
   termSel.value = localStorage.getItem('concord_pc_term') || 'T1';
-  let eventSource = null;
+  let pollTimer = null;
+  let lastMsgId = null;
   let currentImg = null;
   const ocrFieldIds = ['lastName', 'firstName', 'gender', 'birthDate', 'nationality', 'issuingCountry', 'docType', 'docNumber', 'expiryDate'];
 
@@ -258,9 +259,10 @@
     return missingCount;
   }
 
-  // ASCOLTO NATIVO IN TEMPO REALE (LEGGE ALLEGATI FOTO SENZA LIMITI DI 4KB)
+  // ASCOLTO ANTI-FIREWALL (CONTROLLA NUOVE FOTO OGNI 2 SECONDI)
   function startListening() {
-    if (eventSource) eventSource.close();
+    if (pollTimer) clearInterval(pollTimer);
+    lastMsgId = null;
     const term = termSel.value;
     localStorage.setItem('concord_pc_term', term);
     document.getElementById('lblTerm').textContent = term;
@@ -271,32 +273,41 @@
     statusEl.textContent = 'Connessione...';
     statusEl.style.background = '#b45309';
 
-    eventSource = new EventSource('https://ntfy.sh' + topic + '/sse');
-
-    eventSource.onopen = () => {
-      statusEl.textContent = '🟢 PRONTO — In ascolto da Samsung (' + term + ')';
-      statusEl.style.background = '#15803d';
-    };
-
-    eventSource.onmessage = (event) => {
+    const checkMessages = async () => {
       try {
-        const payload = JSON.parse(event.data);
-        if (payload.event === 'message') {
-          if (payload.attachment && payload.attachment.url) {
-            setBanner('⏳ Foto ricevuta dal Samsung! Elaborazione alto contrasto + OCR in corso...', '#fef9c3', '#eab308', '#854d0e');
-            processIncomingInBackground(payload.attachment.url);
-          } else if (payload.message && payload.message.startsWith('data:image/')) {
-            setBanner('⏳ Foto ricevuta dal Samsung! Elaborazione alto contrasto + OCR in corso...', '#fef9c3', '#eab308', '#854d0e');
-            processIncomingInBackground(payload.message);
+        const res = await fetch('https://ntfy.sh' + topic + '/json?poll=1&since=20s', { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        statusEl.textContent = '🟢 PRONTO — In ascolto da Samsung (' + term + ')';
+        statusEl.style.background = '#15803d';
+
+        const text = await res.text();
+        if (!text.trim()) return;
+
+        const lines = text.trim().split('\n');
+        for (const line of lines) {
+          const payload = JSON.parse(line);
+          if (payload.event === 'message' && payload.id !== lastMsgId) {
+            // Ignora eventuali foto vecchie al primo avvio
+            if (lastMsgId === null && (Date.now() / 1000 - payload.time) > 10) {
+              lastMsgId = payload.id;
+              continue;
+            }
+            lastMsgId = payload.id;
+            if (payload.attachment && payload.attachment.url) {
+              setBanner('⏳ Foto ricevuta dal Samsung! Elaborazione alto contrasto + OCR in corso...', '#fef9c3', '#eab308', '#854d0e');
+              processIncomingInBackground(payload.attachment.url);
+            }
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        statusEl.textContent = '🟠 Controllo rete...';
+        statusEl.style.background = '#b45309';
+      }
     };
 
-    eventSource.onerror = () => {
-      statusEl.textContent = '🟠 Riconnessione in corso...';
-      statusEl.style.background = '#b45309';
-    };
+    checkMessages();
+    pollTimer = setInterval(checkMessages, 2000);
   }
 
   function processIncomingInBackground(imgUrl) {
