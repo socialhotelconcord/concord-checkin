@@ -133,25 +133,35 @@
     el.style.color = color;
   }
 
-  async function startCamera() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setMsg('Usa il pulsante Fotocamera Samsung qui sotto.', '#fde047');
-      return;
-    }
+   async function sendToPC(dataUrl) {
+    const targetTerm = termSelect.value;
+    const topic = 'hotel-concord-torino-mrz-' + targetTerm.toLowerCase();
+
+    setMsg('⏳ Invio foto al PC (' + targetTerm + ')...', '#fde047');
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-        audio: false
+      // Converte l'immagine in file binario (Blob) per superare il limite di 4KB di ntfy
+      const resBlob = await fetch(dataUrl);
+      const blob = await resBlob.blob();
+
+      const response = await fetch('https://ntfy.sh' + topic, {
+        method: 'PUT',
+        body: blob,
+        headers: {
+          'Filename': 'documento.jpg'
+        }
       });
-      video.srcObject = stream;
-      streamActive = true;
-      document.getElementById('btnStartCam').style.display = 'none';
-      document.getElementById('btnSnap').style.display = 'flex';
-      setMsg('Allinea le righe <<< dentro il rettangolo oro e premi SCATTA.', '#4ade80');
+
+      if (response.ok) {
+        setMsg('✅ Foto inviata a ' + targetTerm + '! Pronto per il prossimo ospite.', '#4ade80');
+      } else {
+        setMsg('❌ Errore server (' + response.status + '). Riprova.', '#f87171');
+      }
     } catch (err) {
-      setMsg('Apri questa pagina direttamente in Google Chrome oppure usa Fotocamera Samsung.', '#f87171');
+      setMsg('❌ Errore di rete: ' + err.message, '#f87171');
     }
   }
+
 
   function captureFromMirino() {
     if (!streamActive || !video.videoWidth) return;
