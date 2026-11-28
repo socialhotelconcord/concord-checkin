@@ -226,7 +226,7 @@
     setMsg('⏳ Invio foto al PC (' + targetTerm + ')...', '#fde047');
 
     try {
-      const response = await fetch('https://ntfy.sh' + topic, {
+      const response = await fetch('https://ntfy.sh/' + topic, {
         method: 'PUT',
         body: blob,
         headers: {
