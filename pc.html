@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Reception PC — Hotel Concord Torino (protel PMS)</title>
- <script src="https://jsdelivr.net"></script>
-<script src="https://sheetjs.com"></script>
+   <script>
+    document.write('<scr' + 'ipt src="https://jsdelivr.net' + 'tesseract.js@5/dist/tesseract.min.js"></scr' + 'ipt>');
+    document.write('<scr' + 'ipt src="https://sheetjs.com' + 'xlsx-0.20.1/package/dist/xlsx.full.min.js"></scr' + 'ipt>');
+  </script>
   <style>
     :root {
       --navy: #0f2537;
@@ -275,7 +277,7 @@
 
     const checkMessages = async () => {
       try {
-        const res = await fetch('https://ntfy.sh' + topic + '/json?poll=1&since=20s', { cache: 'no-store' });
+        const res = await fetch('https://ntfy.sh/' + topic + '/json?poll=1&since=20s', { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
 
         statusEl.textContent = '🟢 PRONTO — In ascolto da Samsung (' + term + ')';
