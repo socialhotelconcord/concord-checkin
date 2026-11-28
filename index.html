@@ -25,7 +25,6 @@
       border-radius: 10px; border: 2px solid #c59b27; background: #fff; color: #0f2537; text-align: center;
     }
 
-    /* MIRINO CON DELIMITAZIONE RIGHE MRZ */
     .viewfinder-wrap {
       position: relative; width: 100%; height: 225px; background: #091520;
       border-radius: 12px; overflow: hidden; margin-bottom: 12px; border: 2px solid #475569;
@@ -90,7 +89,6 @@
       </select>
     </div>
 
-    <!-- MIRINO CON RIQUADRO DELIMITAZIONE 3 RIGHE MRZ -->
     <div class="viewfinder-wrap" id="vfWrap">
       <video id="videoFeed" autoplay playsinline muted></video>
       <div class="mrz-guide">
@@ -135,7 +133,6 @@
     el.style.color = color;
   }
 
-  // Avvia il mirino al tocco dell'utente
   async function startCamera() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setMsg('Usa il pulsante Fotocamera Samsung qui sotto.', '#fde047');
@@ -152,11 +149,10 @@
       document.getElementById('btnSnap').style.display = 'flex';
       setMsg('Allinea le righe <<< dentro il rettangolo oro e premi SCATTA.', '#4ade80');
     } catch (err) {
-      setMsg('Apri questa pagina direttamente in Google Chrome (non dentro WhatsApp) oppure usa Fotocamera Samsung.', '#f87171');
+      setMsg('Apri questa pagina direttamente in Google Chrome oppure usa Fotocamera Samsung.', '#f87171');
     }
   }
 
-  // Cattura dal mirino e ridimensiona per invio istantaneo
   function captureFromMirino() {
     if (!streamActive || !video.videoWidth) return;
 
@@ -168,23 +164,22 @@
     const cropY = Math.round((vh - cropH) / 2);
 
     const canvas = document.createElement('canvas');
-    canvas.width = 1100;
-    canvas.height = Math.round(1100 * (cropH / cropW));
+    canvas.width = 900;
+    canvas.height = Math.round(900 * (cropH / cropW));
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
     sendToPC(dataUrl);
   }
 
-  // Fotocamera Nativa Samsung
   function compressFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = function(event) {
         const img = new Image();
         img.onload = function() {
-          const MAX_W = 1100;
+          const MAX_W = 900;
           let w = img.width;
           let h = img.height;
           if (w > MAX_W) {
@@ -196,7 +191,7 @@
           canvas.height = h;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', 0.80));
+          resolve(canvas.toDataURL('image/jpeg', 0.72));
         };
         img.onerror = () => reject(new Error('Immagine non valida'));
         img.src = event.target.result;
@@ -207,7 +202,7 @@
   }
 
   document.getElementById('camInput').addEventListener('change', async function(e) {
-    const file = e.target.files ? e.target.files : null;
+    const file = e.target.files ? e.target.files[0] : null;
     if (!file) return;
 
     setMsg('⏳ Preparazione foto...', '#fde047');
@@ -220,7 +215,6 @@
     }
   });
 
-  // INVIO NATIVO VIA HTTP (ZERO LIBRERIE ESTERNE)
   async function sendToPC(dataUrl) {
     const targetTerm = termSelect.value;
     const topic = 'hotel-concord-torino-mrz-' + targetTerm.toLowerCase();
@@ -239,7 +233,7 @@
         setMsg('❌ Errore invio (' + response.status + '). Riprova.', '#f87171');
       }
     } catch (err) {
-      setMsg('❌ Nessuna connessione internet sul telefono.', '#f87171');
+      setMsg('❌ Errore di rete durante invio.', '#f87171');
     }
   }
 </script>
