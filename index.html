@@ -133,35 +133,25 @@
     el.style.color = color;
   }
 
-   async function sendToPC(dataUrl) {
-    const targetTerm = termSelect.value;
-    const topic = 'hotel-concord-torino-mrz-' + targetTerm.toLowerCase();
-
-    setMsg('⏳ Invio foto al PC (' + targetTerm + ')...', '#fde047');
-
+  async function startCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setMsg('Usa il pulsante Fotocamera Samsung qui sotto.', '#fde047');
+      return;
+    }
     try {
-      // Converte l'immagine in file binario (Blob) per superare il limite di 4KB di ntfy
-      const resBlob = await fetch(dataUrl);
-      const blob = await resBlob.blob();
-
-      const response = await fetch('https://ntfy.sh' + topic, {
-        method: 'PUT',
-        body: blob,
-        headers: {
-          'Filename': 'documento.jpg'
-        }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false
       });
-
-      if (response.ok) {
-        setMsg('✅ Foto inviata a ' + targetTerm + '! Pronto per il prossimo ospite.', '#4ade80');
-      } else {
-        setMsg('❌ Errore server (' + response.status + '). Riprova.', '#f87171');
-      }
+      video.srcObject = stream;
+      streamActive = true;
+      document.getElementById('btnStartCam').style.display = 'none';
+      document.getElementById('btnSnap').style.display = 'flex';
+      setMsg('Allinea le righe <<< dentro il rettangolo oro e premi SCATTA.', '#4ade80');
     } catch (err) {
-      setMsg('❌ Errore di rete: ' + err.message, '#f87171');
+      setMsg('Usa il pulsante Fotocamera Samsung qui sotto per scattare.', '#fde047');
     }
   }
-
 
   function captureFromMirino() {
     if (!streamActive || !video.videoWidth) return;
@@ -174,22 +164,23 @@
     const cropY = Math.round((vh - cropH) / 2);
 
     const canvas = document.createElement('canvas');
-    canvas.width = 900;
-    canvas.height = Math.round(900 * (cropH / cropW));
+    canvas.width = 1100;
+    canvas.height = Math.round(1100 * (cropH / cropW));
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
-    sendToPC(dataUrl);
+    canvas.toBlob((blob) => {
+      if (blob) sendBlobToPC(blob);
+    }, 'image/jpeg', 0.82);
   }
 
-  function compressFile(file) {
+  function compressFileToBlob(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = function(event) {
         const img = new Image();
         img.onload = function() {
-          const MAX_W = 900;
+          const MAX_W = 1100;
           let w = img.width;
           let h = img.height;
           if (w > MAX_W) {
@@ -201,7 +192,10 @@
           canvas.height = h;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', 0.72));
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('Compressione fallita'));
+          }, 'image/jpeg', 0.82);
         };
         img.onerror = () => reject(new Error('Immagine non valida'));
         img.src = event.target.result;
@@ -217,15 +211,15 @@
 
     setMsg('⏳ Preparazione foto...', '#fde047');
     try {
-      const dataUrl = await compressFile(file);
+      const blob = await compressFileToBlob(file);
       e.target.value = '';
-      sendToPC(dataUrl);
+      sendBlobToPC(blob);
     } catch (err) {
       setMsg('❌ Errore lettura foto: ' + err.message, '#f87171');
     }
   });
 
-  async function sendToPC(dataUrl) {
+  async function sendBlobToPC(blob) {
     const targetTerm = termSelect.value;
     const topic = 'hotel-concord-torino-mrz-' + targetTerm.toLowerCase();
 
@@ -233,17 +227,20 @@
 
     try {
       const response = await fetch('https://ntfy.sh' + topic, {
-        method: 'POST',
-        body: dataUrl
+        method: 'PUT',
+        body: blob,
+        headers: {
+          'Filename': 'documento.jpg'
+        }
       });
 
       if (response.ok) {
         setMsg('✅ Foto inviata a ' + targetTerm + '! Pronto per il prossimo ospite.', '#4ade80');
       } else {
-        setMsg('❌ Errore invio (' + response.status + '). Riprova.', '#f87171');
+        setMsg('❌ Errore server (' + response.status + '). Riprova.', '#f87171');
       }
     } catch (err) {
-      setMsg('❌ Errore di rete durante invio.', '#f87171');
+      setMsg('❌ Errore di rete: ' + err.message, '#f87171');
     }
   }
 </script>
