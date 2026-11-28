@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Reception PC — Hotel Concord Torino (protel PMS)</title>
   <script src="https://jsdelivr.net"></script>
-  <script src="https://jsdelivr.net"></script>
+  <script src="https://sheetjs.com"></script>
   <style>
     :root {
       --navy: #0f2537;
@@ -87,7 +87,6 @@
   </style>
 </head>
 <body>
-
 <header>
   <div>
     <h1>HOTEL CONCORD TORINO — CONSOLE RECEPTION</h1>
@@ -192,11 +191,10 @@
   <div style="display:flex; justify-content:space-between; align-items:center;">
     <h2 style="border:none; margin:0;">Ospiti Pronti per Importazione protel (<span id="guestCount">0</span>)</h2>
     <div style="display:flex; gap:10px;">
-      <button class="btn btn-red" onclick="clearTable()">Svuota Lista</button>
-      <button class="btn btn-excel" onclick="exportProtelExcel()">📥 ESPORTA EXCEL PROTEL (.XLSX)</button>
+      <button class="btn btn-red" onclick="clearTable()">🗑️ Svuota Lista</button>
+      <button class="btn btn-excel" onclick="exportProtelExcel()">📥 SCARICA EXCEL ROOMING LIST (PROTEL)</button>
     </div>
   </div>
-
   <table>
     <thead>
       <tr>
@@ -204,9 +202,9 @@
         <th>Cognome</th>
         <th>Nome</th>
         <th>Sesso</th>
-        <th>Data Nascita</th>
+        <th>Nascita</th>
         <th>Naz.</th>
-        <th>Tipo</th>
+        <th>Tipo Doc.</th>
         <th>N. Documento</th>
         <th>Scadenza</th>
         <th>Arrivo</th>
@@ -217,29 +215,23 @@
     <tbody id="tableBody"></tbody>
   </table>
 </div>
-
 <script>
-  let eventSource = null;
-  let currentImg = null;
   const termSel = document.getElementById('pcTerm');
   termSel.value = localStorage.getItem('concord_pc_term') || 'T1';
-
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  document.getElementById('arrivalDate').valueAsDate = today;
-  document.getElementById('departureDate').valueAsDate = tomorrow;
-
+  let eventSource = null;
+  let currentImg = null;
   const ocrFieldIds = ['lastName', 'firstName', 'gender', 'birthDate', 'nationality', 'issuingCountry', 'docType', 'docNumber', 'expiryDate'];
 
-  function getStoreKey() { return 'concord_pc_list_' + termSel.value; }
+  function getStoreKey() {
+    return 'concord_guests_' + termSel.value;
+  }
 
   function setBanner(text, bg, border, color) {
-    const banner = document.getElementById('bgProcessBanner');
-    banner.style.background = bg;
-    banner.style.borderLeftColor = border;
-    banner.style.color = color;
+    const b = document.getElementById('bgProcessBanner');
     document.getElementById('bgStatusText').textContent = text;
+    b.style.background = bg;
+    b.style.borderLeftColor = border;
+    b.style.color = color;
   }
 
   function clearHighlight(el) {
@@ -247,245 +239,275 @@
   }
 
   function resetFormHighlights() {
+    ocrFieldIds.forEach(id => clearHighlight(document.getElementById(id)));
+  }
+
+  function highlightFields() {
+    let missingCount = 0;
     ocrFieldIds.forEach(id => {
       const el = document.getElementById(id);
-el.classList.remove('field-extracted', 'field-missing');
-});
-}
-function highlightFields() {
-let missingCount = 0;
-ocrFieldIds.forEach(id => {
-const el = document.getElementById(id);
-if (el.value && el.value.trim() !== '') {
-el.classList.add('field-extracted');
-el.classList.remove('field-missing');
-} else {
-el.classList.add('field-missing');
-el.classList.remove('field-extracted');
-missingCount++;
-}
-});
-return missingCount;
-}
-// ASCOLTO NATIVO IN TEMPO REALE (ZERO LIBRERIE ESTERNE)
-function startListening() {
-if (eventSource) eventSource.close();
-const term = termSel.value;
-localStorage.setItem('concord_pc_term', term);
-document.getElementById('lblTerm').textContent = term;
-renderTable();
-const topic = 'hotel-concord-torino-mrz-' + term.toLowerCase();
-const statusEl = document.getElementById('connStatus');
-statusEl.textContent = 'Connessione...';
-statusEl.style.background = '#b45309';
-eventSource = new EventSource('ntfy.sh' + topic + '/sse');
-eventSource.onopen = () => {
-statusEl.textContent = '🟢 PRONTO — In ascolto da Samsung (' + term + ')';
-statusEl.style.background = '#15803d';
-};
-eventSource.onmessage = (event) => {
-try {
-const payload = JSON.parse(event.data);
-if (payload.event === 'message' && payload.message && payload.message.startsWith('data:image/')) {
-setBanner('⏳ Foto ricevuta dal Samsung! Elaborazione alto contrasto + OCR in background...', '#fef9c3', '#eab308', '#854d0e');
-processIncomingInBackground(payload.message);
-}
-} catch (e) {}
-};
-eventSource.onerror = () => {
-statusEl.textContent = '🟠 Riconnessione in corso...';
-statusEl.style.background = '#b45309';
-};
-}
-function processIncomingInBackground(dataUrl) {
-const img = new Image();
-img.onload = () => {
-currentImg = img;
-applyContrast();
-runBackgroundOCR();
-};
-img.src = dataUrl;
-}
-function applyContrast() {
-if (!currentImg) return;
-const canvas = document.getElementById('docCanvas');
-const ctx = canvas.getContext('2d');
-const thresh = parseInt(document.getElementById('contrastSlider').value, 10);
-canvas.width = currentImg.width;
-canvas.height = currentImg.height;
-ctx.drawImage(currentImg, 0, 0);
-const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-const d = imgData.data;
-for (let i = 0; i < d.length; i += 4) {
-const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-const v = gray < thresh ? 0 : 255;
-d[i] = d[i + 1] = d[i + 2] = v;
-}
-ctx.putImageData(imgData, 0, 0);
-}
-async function runBackgroundOCR() {
-const canvas = document.getElementById('docCanvas');
-if (!canvas.width) return;
-try {
-const worker = await Tesseract.createWorker('eng');
-await worker.setParameters({
-tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<',
-tessedit_pageseg_mode: '6'
-});
-const { data: { text } } = await worker.recognize(canvas);
-await worker.terminate();
-document.getElementById('mrzBox').value = text.trim();
-parseMRZText();
-} catch (e) {
-highlightFields();
-setBanner('⚠️ OCR non riuscito: compila manualmente i campi evidenziati in giallo.', '#fee2e2', '#dc2626', '#991b1b');
-}
-}
-function parseMRZText() {
-const raw = document.getElementById('mrzBox').value.toUpperCase();
-const lines = raw.split(/\r?\n/)
-.map(l => l.replace(/\s+/g, '').replace(/[^A-Z0-9<]/g, ''))
-.filter(l => l.length >= 25 && (l.includes('<') || /^[A-Z0-9]{28,44}$/.test(l)));
-if (lines.length < 2) {
-highlightFields();
-setBanner('⚠️ Lettura parziale: completa manualmente i campi evidenziati in giallo.', '#fef9c3', '#eab308', '#854d0e');
-document.getElementById('lastName').focus();
-return;
-}
-const last = lines[lines.length - 1];
-if (lines.length === 2 || last.length >= 38) {
-const l1 = lines[lines.length - 2].padEnd(44, '<');
-const l2 = last.padEnd(44, '<');
-document.getElementById('docType').value = 'P';
-document.getElementById('issuingCountry').value = l1.substring(2, 5).replace(/</g, '');
-const names = l1.substring(5).split('<<');
-document.getElementById('lastName').value = (names || '').replace(/</g, ' ').trim();
-document.getElementById('firstName').value = (names || '').replace(/</g, ' ').trim();
-document.getElementById('docNumber').value = l2.substring(0, 9).replace(/</g, '');
-document.getElementById('nationality').value = l2.substring(10, 13).replace(/</g, '');
-document.getElementById('birthDate').value = fmtDate(l2.substring(13, 19), true);
-document.getElementById('gender').value = l2.substring(20, 21) === 'F' ? 'F' : 'M';
-document.getElementById('expiryDate').value = fmtDate(l2.substring(21, 27), false);
-} else if (lines.length >= 3) {
-const l1 = lines[lines.length - 3].padEnd(30, '<');
-const l2 = lines[lines.length - 2].padEnd(30, '<');
-const l3 = last.padEnd(30, '<');
-document.getElementById('docType').value = 'ID';
-document.getElementById('issuingCountry').value = l1.substring(2, 5).replace(/</g, '');
-document.getElementById('docNumber').value = l1.substring(5, 14).replace(/</g, '');
-document.getElementById('birthDate').value = fmtDate(l2.substring(0, 6), true);
-document.getElementById('gender').value = l2.substring(7, 8) === 'F' ? 'F' : 'M';
-document.getElementById('expiryDate').value = fmtDate(l2.substring(8, 14), false);
-document.getElementById('nationality').value = l2.substring(15, 18).replace(/</g, '');
-const names = l3.split('<<');
-document.getElementById('lastName').value = (names || '').replace(/</g, ' ').trim();
-document.getElementById('firstName').value = (names || '').replace(/</g, ' ').trim();
-}
-const missing = highlightFields();
-if (missing === 0) {
-setBanner('✅ Dati estratti al 100%! Verifica rapida e premi Conferma Ospite.', '#dcfce7', '#16a34a', '#14532d');
-} else {
-setBanner(⚠️ Estratti i dati principali (${missing} campi in giallo da completare manualmente)., '#fef9c3', '#eab308', '#854d0e');
-}
-document.getElementById('roomNumber').focus();
-}
-function fmtDate(yymmdd, isBirth) {
-if (!/^\d{6}$/.test(yymmdd)) return '';
-const yy = parseInt(yymmdd.substring(0, 2), 10);
-const curYY = new Date().getFullYear() % 100;
-const century = isBirth ? (yy > curYY ? '19' : '20') : '20';
-return ${century}${yymmdd.substring(0, 2)}-${yymmdd.substring(2, 4)}-${yymmdd.substring(4, 6)};
-}
-function getGuests() { return JSON.parse(localStorage.getItem(getStoreKey()) || '[]'); }
-function setGuests(arr) { localStorage.setItem(getStoreKey(), JSON.stringify(arr)); renderTable(); }
-function addGuestToTable() {
-const lastName = document.getElementById('lastName').value.trim().toUpperCase();
-const firstName = document.getElementById('firstName').value.trim().toUpperCase();
-if (!lastName || !firstName) {
-alert('Inserisci almeno Cognome e Nome.');
-return;
-}
-const g = {
-Room: document.getElementById('roomNumber').value.trim(),
-LastName: lastName,
-FirstName: firstName,
-Gender: document.getElementById('gender').value,
-DateOfBirth: document.getElementById('birthDate').value,
-Nationality: document.getElementById('nationality').value.trim().toUpperCase(),
-IssuingCountry: document.getElementById('issuingCountry').value.trim().toUpperCase(),
-DocType: document.getElementById('docType').value,
-DocNumber: document.getElementById('docNumber').value.trim().toUpperCase(),
-DocExpiry: document.getElementById('expiryDate').value,
-Arrival: document.getElementById('arrivalDate').value,
-Departure: document.getElementById('departureDate').value,
-Terminal: termSel.value
-};
-const list = getGuests();
-list.push(g);
-setGuests(list);
-['lastName', 'firstName', 'docNumber', 'birthDate', 'nationality', 'issuingCountry', 'expiryDate', 'mrzBox'].forEach(id => {
-document.getElementById(id).value = '';
-});
-resetFormHighlights();
-setBanner('✅ Ospite confermato in lista! In attesa dello scatto successivo dal Samsung A16...', '#e0f2fe', '#0284c7', '#0c4a6e');
-}
-function delRow(i) {
-const list = getGuests();
-list.splice(i, 1);
-setGuests(list);
-}
-function clearTable() {
-if (confirm('Svuotare tutta la lista di ' + termSel.value + '?')) setGuests([]);
-}
-function renderTable() {
-const list = getGuests();
-document.getElementById('guestCount').textContent = list.length;
-const tb = document.getElementById('tableBody');
-tb.innerHTML = '';
-list.forEach((g, i) => {
-const tr = document.createElement('tr');
-tr.innerHTML = `
-${g.Room || '-'}
-${g.LastName}
-${g.FirstName}
-${g.Gender}
-${g.DateOfBirth}
-${g.Nationality}
-${g.DocType}
-${g.DocNumber}
-${g.DocExpiry}
-${g.Arrival}
-${g.Departure}
-Elimina
-`;
-tb.appendChild(tr);
-});
-}
-function exportProtelExcel() {
-const list = getGuests();
-if (!list.length) {
-alert('La lista è vuota.');
-return;
-}
-const rows = list.map(g => ({
-'Room': g.Room,
-'Last Name': g.LastName,
-'First Name': g.FirstName,
-'Gender': g.Gender,
-'Date of Birth': g.DateOfBirth,
-'Nationality': g.Nationality,
-'ID Type': g.DocType,
-'ID Number': g.DocNumber,
-'Issuing Country': g.IssuingCountry,
-'ID Expiry': g.DocExpiry,
-'Arrival': g.Arrival,
-'Departure': g.Departure,
-'Terminal': g.Terminal
-}));
-const ws = XLSX.utils.json_to_sheet(rows);
-const wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, ws, 'RoomingList');
-const dateStr = new Date().toISOString().slice(0, 10);
-XLSX.writeFile(wb, HotelConcord_protel_${termSel.value}_${dateStr}.xlsx);
-}
-startListening();
+      if (el.value && el.value.trim() !== '') {
+        el.classList.add('field-extracted');
+        el.classList.remove('field-missing');
+      } else {
+        el.classList.add('field-missing');
+        el.classList.remove('field-extracted');
+        missingCount++;
+      }
+    });
+    return missingCount;
+  }
+
+  // ASCOLTO NATIVO IN TEMPO REALE (LEGGE ALLEGATI FOTO SENZA LIMITI DI 4KB)
+  function startListening() {
+    if (eventSource) eventSource.close();
+    const term = termSel.value;
+    localStorage.setItem('concord_pc_term', term);
+    document.getElementById('lblTerm').textContent = term;
+    renderTable();
+
+    const topic = 'hotel-concord-torino-mrz-' + term.toLowerCase();
+    const statusEl = document.getElementById('connStatus');
+    statusEl.textContent = 'Connessione...';
+    statusEl.style.background = '#b45309';
+
+    eventSource = new EventSource('https://ntfy.sh' + topic + '/sse');
+
+    eventSource.onopen = () => {
+      statusEl.textContent = '🟢 PRONTO — In ascolto da Samsung (' + term + ')';
+      statusEl.style.background = '#15803d';
+    };
+
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.event === 'message') {
+          if (payload.attachment && payload.attachment.url) {
+            setBanner('⏳ Foto ricevuta dal Samsung! Elaborazione alto contrasto + OCR in corso...', '#fef9c3', '#eab308', '#854d0e');
+            processIncomingInBackground(payload.attachment.url);
+          } else if (payload.message && payload.message.startsWith('data:image/')) {
+            setBanner('⏳ Foto ricevuta dal Samsung! Elaborazione alto contrasto + OCR in corso...', '#fef9c3', '#eab308', '#854d0e');
+            processIncomingInBackground(payload.message);
+          }
+        }
+      } catch (e) {}
+    };
+
+    eventSource.onerror = () => {
+      statusEl.textContent = '🟠 Riconnessione in corso...';
+      statusEl.style.background = '#b45309';
+    };
+  }
+
+  function processIncomingInBackground(imgUrl) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      currentImg = img;
+      applyContrast();
+      runBackgroundOCR();
+    };
+    img.onerror = () => {
+      setBanner('⚠️ Errore nel caricamento dell\'immagine ricevuta.', '#fee2e2', '#dc2626', '#991b1b');
+    };
+    img.src = imgUrl;
+  }
+
+  function applyContrast() {
+    if (!currentImg) return;
+    const canvas = document.getElementById('docCanvas');
+    const ctx = canvas.getContext('2d');
+    const thresh = parseInt(document.getElementById('contrastSlider').value, 10);
+    canvas.width = currentImg.width;
+    canvas.height = currentImg.height;
+    ctx.drawImage(currentImg, 0, 0);
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      const v = gray < thresh ? 0 : 255;
+      d[i] = d[i + 1] = d[i + 2] = v;
+    }
+    ctx.putImageData(imgData, 0, 0);
+  }
+  async function runBackgroundOCR() {
+    const canvas = document.getElementById('docCanvas');
+    if (!canvas.width) return;
+    try {
+      const worker = await Tesseract.createWorker('eng');
+      await worker.setParameters({
+        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<',
+        tessedit_pageseg_mode: '6'
+      });
+      const { data: { text } } = await worker.recognize(canvas);
+      await worker.terminate();
+      document.getElementById('mrzBox').value = text.trim();
+      parseMRZText();
+    } catch (e) {
+      highlightFields();
+      setBanner('⚠️ OCR non riuscito: compila manualmente i campi evidenziati in giallo.', '#fee2e2', '#dc2626', '#991b1b');
+    }
+  }
+
+  function parseMRZText() {
+    const raw = document.getElementById('mrzBox').value.toUpperCase();
+    const lines = raw.split(/\r?\n/)
+      .map(l => l.replace(/\s+/g, '').replace(/[^A-Z0-9<]/g, ''))
+      .filter(l => l.length >= 25 && (l.includes('<') || /^[A-Z0-9]{28,44}$/.test(l)));
+
+    if (lines.length < 2) {
+      highlightFields();
+      setBanner('⚠️ Lettura parziale: completa manualmente i campi evidenziati in giallo.', '#fef9c3', '#eab308', '#854d0e');
+      document.getElementById('lastName').focus();
+      return;
+    }
+
+    const last = lines[lines.length - 1];
+    if (lines.length === 2 || last.length >= 38) {
+      const l1 = lines[lines.length - 2].padEnd(44, '<');
+      const l2 = last.padEnd(44, '<');
+      document.getElementById('docType').value = 'P';
+      document.getElementById('issuingCountry').value = l1.substring(2, 5).replace(/</g, '');
+      const names = l1.substring(5).split('<<');
+      document.getElementById('lastName').value = (names[0] || '').replace(/</g, ' ').trim();
+      document.getElementById('firstName').value = (names[1] || '').replace(/</g, ' ').trim();
+      document.getElementById('docNumber').value = l2.substring(0, 9).replace(/</g, '');
+      document.getElementById('nationality').value = l2.substring(10, 13).replace(/</g, '');
+      document.getElementById('birthDate').value = fmtDate(l2.substring(13, 19), true);
+      document.getElementById('gender').value = l2.substring(20, 21) === 'F' ? 'F' : 'M';
+      document.getElementById('expiryDate').value = fmtDate(l2.substring(21, 27), false);
+    } else if (lines.length >= 3) {
+      const l1 = lines[lines.length - 3].padEnd(30, '<');
+      const l2 = lines[lines.length - 2].padEnd(30, '<');
+      const l3 = last.padEnd(30, '<');
+      document.getElementById('docType').value = 'ID';
+      document.getElementById('issuingCountry').value = l1.substring(2, 5).replace(/</g, '');
+      document.getElementById('docNumber').value = l1.substring(5, 14).replace(/</g, '');
+      document.getElementById('birthDate').value = fmtDate(l2.substring(0, 6), true);
+      document.getElementById('gender').value = l2.substring(7, 8) === 'F' ? 'F' : 'M';
+      document.getElementById('expiryDate').value = fmtDate(l2.substring(8, 14), false);
+      document.getElementById('nationality').value = l2.substring(15, 18).replace(/</g, '');
+      const names = l3.split('<<');
+      document.getElementById('lastName').value = (names[0] || '').replace(/</g, ' ').trim();
+      document.getElementById('firstName').value = (names[1] || '').replace(/</g, ' ').trim();
+    }
+
+    const missing = highlightFields();
+    if (missing === 0) {
+      setBanner('✅ Dati estratti al 100%! Verifica rapida e premi Conferma Ospite.', '#dcfce7', '#16a34a', '#14532d');
+    } else {
+      setBanner(`⚠️ Estratti i dati principali (${missing} campi in giallo da completare manualmente).`, '#fef9c3', '#eab308', '#854d0e');
+    }
+    document.getElementById('roomNumber').focus();
+  }
+
+  function fmtDate(yymmdd, isBirth) {
+    if (!/^\d{6}$/.test(yymmdd)) return '';
+    const yy = parseInt(yymmdd.substring(0, 2), 10);
+    const curYY = new Date().getFullYear() % 100;
+    const century = isBirth ? (yy > curYY ? '19' : '20') : '20';
+    return `${century}${yymmdd.substring(0, 2)}-${yymmdd.substring(2, 4)}-${yymmdd.substring(4, 6)}`;
+  }
+
+  function getGuests() { return JSON.parse(localStorage.getItem(getStoreKey()) || '[]'); }
+  function setGuests(arr) { localStorage.setItem(getStoreKey(), JSON.stringify(arr)); renderTable(); }
+
+  function addGuestToTable() {
+    const lastName = document.getElementById('lastName').value.trim().toUpperCase();
+    const firstName = document.getElementById('firstName').value.trim().toUpperCase();
+    if (!lastName || !firstName) {
+      alert('Inserisci almeno Cognome e Nome.');
+      return;
+    }
+    const g = {
+      Room: document.getElementById('roomNumber').value.trim(),
+      LastName: lastName,
+      FirstName: firstName,
+      Gender: document.getElementById('gender').value,
+      DateOfBirth: document.getElementById('birthDate').value,
+      Nationality: document.getElementById('nationality').value.trim().toUpperCase(),
+      IssuingCountry: document.getElementById('issuingCountry').value.trim().toUpperCase(),
+      DocType: document.getElementById('docType').value,
+      DocNumber: document.getElementById('docNumber').value.trim().toUpperCase(),
+      DocExpiry: document.getElementById('expiryDate').value,
+      Arrival: document.getElementById('arrivalDate').value,
+      Departure: document.getElementById('departureDate').value,
+      Terminal: termSel.value
+    };
+    const list = getGuests();
+    list.push(g);
+    setGuests(list);
+    ['lastName', 'firstName', 'docNumber', 'birthDate', 'nationality', 'issuingCountry', 'expiryDate', 'mrzBox'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    resetFormHighlights();
+    setBanner('✅ Ospite confermato in lista! In attesa dello scatto successivo dal Samsung A16...', '#e0f2fe', '#0284c7', '#0c4a6e');
+  }
+
+  function delRow(i) {
+    const list = getGuests();
+    list.splice(i, 1);
+    setGuests(list);
+  }
+
+  function clearTable() {
+    if (confirm('Svuotare tutta la lista di ' + termSel.value + '?')) setGuests([]);
+  }
+
+  function renderTable() {
+    const list = getGuests();
+    document.getElementById('guestCount').textContent = list.length;
+    const tb = document.getElementById('tableBody');
+    tb.innerHTML = '';
+    list.forEach((g, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${g.Room || '-'}</td>
+        <td><strong>${g.LastName}</strong></td>
+        <td>${g.FirstName}</td>
+        <td>${g.Gender}</td>
+        <td>${g.DateOfBirth}</td>
+        <td>${g.Nationality}</td>
+        <td>${g.DocType}</td>
+        <td>${g.DocNumber}</td>
+        <td>${g.DocExpiry}</td>
+        <td>${g.Arrival}</td>
+        <td>${g.Departure}</td>
+        <td><button class="btn btn-red" onclick="delRow(${i})">Elimina</button></td>
+      `;
+      tb.appendChild(tr);
+    });
+  }
+
+  function exportProtelExcel() {
+    const list = getGuests();
+    if (!list.length) {
+      alert('La lista è vuota.');
+      return;
+    }
+    const rows = list.map(g => ({
+      'Room': g.Room,
+      'Last Name': g.LastName,
+      'First Name': g.FirstName,
+      'Gender': g.Gender,
+      'Date of Birth': g.DateOfBirth,
+      'Nationality': g.Nationality,
+      'ID Type': g.DocType,
+      'ID Number': g.DocNumber,
+      'Issuing Country': g.IssuingCountry,
+      'ID Expiry': g.DocExpiry,
+      'Arrival': g.Arrival,
+      'Departure': g.Departure,
+      'Terminal': g.Terminal
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'RoomingList');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `HotelConcord_protel_${termSel.value}_${dateStr}.xlsx`);
+  }
+
+  startListening();
+</script>
+</body>
+</html>
